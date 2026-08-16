@@ -3,9 +3,11 @@ package com.example.employeeprofile.di
 import com.example.employeeprofile.data.local.EmployeeDatabase
 import com.example.employeeprofile.data.local.createEmployeeDatabase
 import com.example.employeeprofile.data.repository.EmployeeRepository
+import com.example.employeeprofile.view.screen.list.EmployeeListViewModel
 import org.koin.core.KoinApplication
 import org.koin.core.context.startKoin
 import org.koin.core.module.Module
+import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.KoinAppDeclaration
 import org.koin.dsl.module
 
@@ -15,6 +17,8 @@ val sharedModule = module {
     single { createEmployeeDatabase(get()) }
     single { get<EmployeeDatabase>().employeeDao() }
     single { EmployeeRepository(get()) }
+
+    viewModel { EmployeeListViewModel(get()) }
 }
 
 /**
