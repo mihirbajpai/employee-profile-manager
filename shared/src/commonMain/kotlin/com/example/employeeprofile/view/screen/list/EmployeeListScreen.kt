@@ -1,5 +1,14 @@
 package com.example.employeeprofile.view.screen.list
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -62,12 +71,17 @@ private const val LOAD_MORE_THRESHOLD = 5
 
 private const val LOADING_ITEM_KEY = "loading"
 
+/** A new row slides up from a quarter of its own height. */
+private const val SLIDE_IN_FRACTION = 4
+
 /** How long the undo offer stays up, per the brief. */
 private const val UNDO_TIMEOUT_MS = 5_000L
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun EmployeeListScreen(
+    sharedTransitionScope: SharedTransitionScope,
+    animatedVisibilityScope: AnimatedVisibilityScope,
     themePreference: ThemePreference,
     onCycleTheme: () -> Unit,
     onAddEmployee: () -> Unit,
@@ -204,9 +218,22 @@ fun EmployeeListScreen(
                 verticalArrangement = Arrangement.spacedBy(Spacing.small)
             ) {
                 items(items = employees, key = { it.id }) { employee ->
+                    // Starts hidden and flips on first composition, so a row arriving in the
+                    // list animates in rather than appearing fully formed.
+                    val appearance = remember {
+                        MutableTransitionState(false).apply { targetState = true }
+                    }
+                    AnimatedVisibility(
+                        visibleState = appearance,
+                        enter = fadeIn() + slideInVertically { it / SLIDE_IN_FRACTION },
+                        exit = fadeOut() + shrinkVertically(),
+                        modifier = Modifier.animateItem()
+                    ) {
                     Box {
                         EmployeeCard(
                             employee = employee,
+                            sharedTransitionScope = sharedTransitionScope,
+                            animatedVisibilityScope = animatedVisibilityScope,
                             onClick = { onViewEmployee(employee.id) },
                             onLongClick = { contextMenuFor = employee }
                         )
@@ -240,6 +267,7 @@ fun EmployeeListScreen(
                                 }
                             )
                         }
+                    }
                     }
                 }
                 if (hasMore) {

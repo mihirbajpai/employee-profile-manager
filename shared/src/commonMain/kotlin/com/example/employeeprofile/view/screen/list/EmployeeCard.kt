@@ -1,5 +1,8 @@
 package com.example.employeeprofile.view.screen.list
 
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -32,12 +35,17 @@ import com.example.employeeprofile.view.formatSalary
 import com.example.employeeprofile.view.theme.Spacing
 
 private val AVATAR_SIZE = 48.dp
+
+/** Ties the list avatar to the detail avatar for the same employee. */
+fun avatarSharedKey(employeeId: Long): String = "avatar-$employeeId"
 private val STATUS_DOT_SIZE = 8.dp
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun EmployeeCard(
     employee: Employee,
+    sharedTransitionScope: SharedTransitionScope,
+    animatedVisibilityScope: AnimatedVisibilityScope,
     onClick: () -> Unit,
     onLongClick: () -> Unit,
     modifier: Modifier = Modifier
@@ -53,11 +61,20 @@ fun EmployeeCard(
                 .padding(Spacing.medium),
             verticalAlignment = Alignment.Top
         ) {
-            Avatar(
-                fullName = employee.fullName,
-                size = AVATAR_SIZE,
-                imagePath = employee.profileImagePath
-            )
+            // The avatar flies from here to the detail header and back.
+            with(sharedTransitionScope) {
+                Avatar(
+                    fullName = employee.fullName,
+                    size = AVATAR_SIZE,
+                    imagePath = employee.profileImagePath,
+                    modifier = Modifier.sharedElement(
+                        sharedContentState = rememberSharedContentState(
+                            key = avatarSharedKey(employee.id)
+                        ),
+                        animatedVisibilityScope = animatedVisibilityScope
+                    )
+                )
+            }
             Spacer(Modifier.width(Spacing.medium))
             Column(modifier = Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {

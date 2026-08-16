@@ -14,6 +14,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.background
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -44,6 +47,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.employeeprofile.data.model.Employee
 import com.example.employeeprofile.view.DataState
 import com.example.employeeprofile.view.component.Avatar
+import com.example.employeeprofile.view.screen.list.avatarSharedKey
 import com.example.employeeprofile.view.component.EmptyState
 import com.example.employeeprofile.view.component.Pill
 import com.example.employeeprofile.view.component.ResumeField
@@ -55,9 +59,11 @@ import org.koin.compose.viewmodel.koinViewModel
 private val HEADER_AVATAR_SIZE = 96.dp
 private val STATUS_DOT_SIZE = 8.dp
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun EmployeeDetailScreen(
+    sharedTransitionScope: SharedTransitionScope,
+    animatedVisibilityScope: AnimatedVisibilityScope,
     employeeId: Long,
     onEdit: (employeeId: Long) -> Unit,
     onBack: () -> Unit,
@@ -101,14 +107,23 @@ fun EmployeeDetailScreen(
                     message = current.error.message ?: "That employee couldn't be loaded."
                 )
 
-                is DataState.Success -> EmployeeDetail(employee = current.value)
+                is DataState.Success -> EmployeeDetail(
+                    employee = current.value,
+                    sharedTransitionScope = sharedTransitionScope,
+                    animatedVisibilityScope = animatedVisibilityScope
+                )
             }
         }
     }
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-private fun EmployeeDetail(employee: Employee) {
+private fun EmployeeDetail(
+    employee: Employee,
+    sharedTransitionScope: SharedTransitionScope,
+    animatedVisibilityScope: AnimatedVisibilityScope
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -116,7 +131,7 @@ private fun EmployeeDetail(employee: Employee) {
             .padding(horizontal = Spacing.medium)
             .padding(bottom = Spacing.xLarge)
     ) {
-        Header(employee)
+        Header(employee, sharedTransitionScope, animatedVisibilityScope)
 
         Section(title = "Contact") {
             DetailRow(label = "Email", value = employee.email)
@@ -145,19 +160,32 @@ private fun EmployeeDetail(employee: Employee) {
     }
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-private fun Header(employee: Employee) {
+private fun Header(
+    employee: Employee,
+    sharedTransitionScope: SharedTransitionScope,
+    animatedVisibilityScope: AnimatedVisibilityScope
+) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = Spacing.large),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Avatar(
-            fullName = employee.fullName,
-            size = HEADER_AVATAR_SIZE,
-            imagePath = employee.profileImagePath
-        )
+        with(sharedTransitionScope) {
+            Avatar(
+                fullName = employee.fullName,
+                size = HEADER_AVATAR_SIZE,
+                imagePath = employee.profileImagePath,
+                modifier = Modifier.sharedElement(
+                    sharedContentState = rememberSharedContentState(
+                        key = avatarSharedKey(employee.id)
+                    ),
+                    animatedVisibilityScope = animatedVisibilityScope
+                )
+            )
+        }
         Spacer(Modifier.height(Spacing.medium))
         Text(
             text = employee.fullName,

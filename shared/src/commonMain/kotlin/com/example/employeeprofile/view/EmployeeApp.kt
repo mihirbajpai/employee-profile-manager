@@ -1,5 +1,7 @@
 package com.example.employeeprofile.view
 
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
@@ -25,6 +27,7 @@ import com.example.employeeprofile.view.theme.EmployeeProfileTheme
 import com.example.employeeprofile.view.theme.resolveDarkTheme
 import org.koin.compose.viewmodel.koinViewModel
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun EmployeeApp(settingsViewModel: SettingsViewModel = koinViewModel()) {
     val themePreference by settingsViewModel.themePreference.collectAsStateWithLifecycle()
@@ -34,6 +37,7 @@ fun EmployeeApp(settingsViewModel: SettingsViewModel = koinViewModel()) {
         // Form and Detail both take an employee id; the form reads NEW_EMPLOYEE_ID as "create".
         val formRoute = "${Screen.FORM.route}/{$ARG_EMPLOYEE_ID}"
         val detailRoute = "${Screen.DETAIL.route}/{$ARG_EMPLOYEE_ID}"
+        SharedTransitionLayout {
         NavHost(
             modifier = Modifier
                 .fillMaxSize()
@@ -46,6 +50,8 @@ fun EmployeeApp(settingsViewModel: SettingsViewModel = koinViewModel()) {
         ) {
             composable(Screen.LIST.route) {
                 EmployeeListScreen(
+                    sharedTransitionScope = this@SharedTransitionLayout,
+                    animatedVisibilityScope = this@composable,
                     themePreference = themePreference,
                     onCycleTheme = settingsViewModel::onCycleTheme,
                     onAddEmployee = {
@@ -66,6 +72,8 @@ fun EmployeeApp(settingsViewModel: SettingsViewModel = koinViewModel()) {
 
             composable(route = detailRoute, arguments = employeeIdArgument) { entry ->
                 EmployeeDetailScreen(
+                    sharedTransitionScope = this@SharedTransitionLayout,
+                    animatedVisibilityScope = this@composable,
                     employeeId = entry.employeeId(),
                     onEdit = { navController.navigate(Screen.FORM.withArgs(it)) },
                     onBack = navController::navigateUp
@@ -75,6 +83,7 @@ fun EmployeeApp(settingsViewModel: SettingsViewModel = koinViewModel()) {
             composable(Screen.TOP_EARNERS.route) {
                 TopEarnersScreen(onBack = navController::navigateUp)
             }
+        }
         }
     }
 }
