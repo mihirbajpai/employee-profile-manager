@@ -25,9 +25,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import coil3.compose.AsyncImage
 import com.example.employeeprofile.platform.ImageSource
 import com.example.employeeprofile.view.theme.Spacing
 
@@ -76,25 +74,7 @@ fun ProfileImageField(
         horizontalArrangement = Arrangement.Center
     ) {
         Box(contentAlignment = Alignment.BottomEnd) {
-            if (imagePath == null) {
-                Avatar(fullName = fullName, size = AVATAR_SIZE)
-            } else {
-                // The circle is enforced by the box, not the image: sizing the image alone
-                // leaves it free to draw past those bounds, square corners and all.
-                Box(
-                    modifier = Modifier
-                        .size(AVATAR_SIZE)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.surface)
-                ) {
-                    AsyncImage(
-                        model = imagePath,
-                        contentDescription = "Profile photo",
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.matchParentSize()
-                    )
-                }
-            }
+            Avatar(fullName = fullName, size = AVATAR_SIZE, imagePath = imagePath)
             Box(
                 modifier = Modifier
                     .size(CAMERA_BADGE_SIZE)

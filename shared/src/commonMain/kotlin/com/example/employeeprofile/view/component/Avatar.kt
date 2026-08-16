@@ -10,12 +10,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.Dp
+import coil3.compose.AsyncImage
 import com.example.employeeprofile.view.initialsOf
 
 /**
- * Circular avatar. Falls back to the employee's initials until there's a profile photo to show —
- * the photo path arrives with the picker work, so [imagePath] is unused for now.
+ * Circular avatar: the profile photo when there is one, the employee's initials when there
+ * isn't. The circle is enforced by this box rather than by the image, which would otherwise be
+ * free to draw past its bounds and come out square-cornered.
  */
 @Composable
 fun Avatar(
@@ -31,10 +34,19 @@ fun Avatar(
             .background(MaterialTheme.colorScheme.primaryContainer),
         contentAlignment = Alignment.Center
     ) {
-        Text(
-            text = initialsOf(fullName),
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onPrimaryContainer
-        )
+        if (imagePath == null) {
+            Text(
+                text = initialsOf(fullName),
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onPrimaryContainer
+            )
+        } else {
+            AsyncImage(
+                model = imagePath,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.matchParentSize()
+            )
+        }
     }
 }

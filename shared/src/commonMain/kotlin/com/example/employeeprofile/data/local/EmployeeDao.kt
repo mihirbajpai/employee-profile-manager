@@ -21,6 +21,10 @@ interface EmployeeDao {
     @Query("SELECT * FROM employees WHERE id = :id")
     suspend fun findById(id: Long): EmployeeEntity?
 
+    /** Detail screen watches its record, so an edit elsewhere shows up without a reload. */
+    @Query("SELECT * FROM employees WHERE id = :id")
+    fun observeById(id: Long): Flow<EmployeeEntity?>
+
     /** One-shot read, used to build the duplicate index at start-up. */
     @Query("SELECT * FROM employees")
     suspend fun getAll(): List<EmployeeEntity>

@@ -36,12 +36,14 @@ fun ResumeField(
     resume: ResumeDocument?,
     onUpload: () -> Unit,
     onRemove: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    readOnly: Boolean = false
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
         FieldLabel(text = "Resume")
         Spacer(Modifier.padding(top = Spacing.xSmall))
         if (resume == null) {
+            if (readOnly) return@Column
             OutlinedButton(onClick = onUpload, modifier = Modifier.fillMaxWidth()) {
                 Icon(imageVector = Icons.Default.UploadFile, contentDescription = null)
                 Spacer(Modifier.width(Spacing.small))
@@ -78,12 +80,14 @@ fun ResumeField(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-                IconButton(onClick = onRemove) {
-                    Icon(
-                        imageVector = Icons.Default.Close,
-                        contentDescription = "Remove resume",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                if (readOnly.not()) {
+                    IconButton(onClick = onRemove) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = "Remove resume",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
             }
         }

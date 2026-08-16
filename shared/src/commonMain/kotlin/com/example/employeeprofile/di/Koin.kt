@@ -4,6 +4,7 @@ import com.example.employeeprofile.data.local.EmployeeDatabase
 import com.example.employeeprofile.data.local.createEmployeeDatabase
 import com.example.employeeprofile.data.repository.EmployeeRepository
 import com.example.employeeprofile.domain.algo.DuplicateIndex
+import com.example.employeeprofile.view.screen.detail.EmployeeDetailViewModel
 import com.example.employeeprofile.view.screen.form.EmployeeFormViewModel
 import com.example.employeeprofile.view.screen.list.EmployeeListViewModel
 import com.example.employeeprofile.view.screen.topearners.TopEarnersViewModel
@@ -25,6 +26,7 @@ val sharedModule = module {
     viewModel { EmployeeListViewModel(get()) }
     viewModel { EmployeeFormViewModel(get()) }
     viewModel { TopEarnersViewModel(get()) }
+    viewModel { EmployeeDetailViewModel(get()) }
 }
 
 /**

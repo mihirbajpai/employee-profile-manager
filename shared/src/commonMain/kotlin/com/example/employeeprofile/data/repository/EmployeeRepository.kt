@@ -30,6 +30,8 @@ class EmployeeRepository(
 
     suspend fun findById(id: Long): Employee? = dao.findById(id)?.toDomain()
 
+    fun observeById(id: Long): Flow<Employee?> = dao.observeById(id).map { it?.toDomain() }
+
     /**
      * Whether this record would collide with one already stored, checked in memory before the
      * database is touched at all. Returns the field at fault, or null when it's free to save.
