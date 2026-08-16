@@ -5,6 +5,7 @@ import com.example.employeeprofile.data.local.SettingsStore
 import com.example.employeeprofile.data.local.createEmployeeDatabase
 import com.example.employeeprofile.data.repository.EmployeeRepository
 import com.example.employeeprofile.domain.algo.DuplicateIndex
+import com.example.employeeprofile.domain.algo.RecentlyViewed
 import com.example.employeeprofile.view.SettingsViewModel
 import com.example.employeeprofile.view.screen.detail.EmployeeDetailViewModel
 import com.example.employeeprofile.view.screen.form.EmployeeFormViewModel
@@ -25,13 +26,14 @@ val sharedModule = module {
     single { get<EmployeeDatabase>().employeeDao() }
     single { SettingsStore(get()) }
     single { DuplicateIndex() }
+    single { RecentlyViewed() }
     single { EmployeeRepository(get(), get()) }
 
     viewModel { SettingsViewModel(get()) }
-    viewModel { EmployeeListViewModel(get()) }
+    viewModel { EmployeeListViewModel(get(), get()) }
     viewModel { EmployeeFormViewModel(get()) }
     viewModel { TopEarnersViewModel(get()) }
-    viewModel { EmployeeDetailViewModel(get()) }
+    viewModel { EmployeeDetailViewModel(get(), get()) }
     viewModel { DepartmentSummaryViewModel(get()) }
 }
 

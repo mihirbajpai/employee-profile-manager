@@ -6,6 +6,8 @@ import com.example.employeeprofile.data.model.Department
 import com.example.employeeprofile.data.model.Employee
 import com.example.employeeprofile.data.model.EmploymentType
 import com.example.employeeprofile.data.repository.EmployeeRepository
+import com.example.employeeprofile.domain.algo.NameTrie
+import com.example.employeeprofile.domain.algo.RecentlyViewed
 import com.example.employeeprofile.domain.algo.UndoStack
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
@@ -15,6 +17,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.milliseconds
@@ -24,7 +27,13 @@ import kotlin.time.Duration.Companion.milliseconds
  * composable only draws what it receives.
  */
 @OptIn(FlowPreview::class)
-class EmployeeListViewModel(private val repository: EmployeeRepository) : ViewModel() {
+class EmployeeListViewModel(
+    private val repository: EmployeeRepository,
+    private val recentlyViewed: RecentlyViewed
+) : ViewModel() {
+
+    /** Rebuilt whenever the roster changes; drives the type-ahead suggestions. */
+    private val nameTrie = NameTrie()
 
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
@@ -96,6 +105,38 @@ class EmployeeListViewModel(private val repository: EmployeeRepository) : ViewMo
         initialValue = false
     )
 
+    /**
+     * Names starting with what's been typed, from the trie. Empty once the query matches
+     * nothing new to offer — there's no point suggesting a name that's already been typed out.
+     */
+    val suggestions: StateFlow<List<String>> = combine(
+        matchingAll,
+        repository.observeAll(),
+        _searchQuery
+    ) { _, all, query ->
+        nameTrie.reset(all)
+        if (query.trim().length < MIN_PREFIX) {
+            emptyList()
+        } else {
+            nameTrie.suggest(query).filterNot { it.equals(query.trim(), ignoreCase = true) }
+        }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(SUBSCRIPTION_TIMEOUT_MS),
+        initialValue = emptyList()
+    )
+
+    /** The employees opened most recently, newest first, minus anyone since deleted. */
+    val recent: StateFlow<List<Employee>> = repository.observeAll().map { all ->
+        recentlyViewed.retainAll(all.map { it.id }.toSet())
+        val byId = all.associateBy { it.id }
+        recentlyViewed.ids().mapNotNull(byId::get)
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(SUBSCRIPTION_TIMEOUT_MS),
+        initialValue = emptyList()
+    )
+
     /** Called when the list nears its end. */
     fun onLoadMore() {
         _visibleCount.value += PAGE_SIZE
@@ -149,6 +190,11 @@ class EmployeeListViewModel(private val repository: EmployeeRepository) : ViewMo
         _undoPrompt.value = null
     }
 
+    /** Fills the search box from a suggestion. */
+    fun onSuggestionChosen(name: String) {
+        onSearchQueryChange(name)
+    }
+
     fun onSortChange(sort: EmployeeSort) {
         _sort.value = sort
         resetPaging()
@@ -179,6 +225,9 @@ class EmployeeListViewModel(private val repository: EmployeeRepository) : ViewMo
     private companion object {
         /** Rows per page, per the brief. */
         const val PAGE_SIZE = 20
+
+        /** Below this, a prefix matches so much that suggesting anything is noise. */
+        const val MIN_PREFIX = 2
 
         /** Long enough to skip the letters someone types on the way to a word. */
         val SEARCH_DEBOUNCE = 300.milliseconds

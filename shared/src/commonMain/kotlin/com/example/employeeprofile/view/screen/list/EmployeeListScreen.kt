@@ -9,6 +9,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,6 +19,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BrightnessAuto
@@ -25,7 +28,9 @@ import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Badge
+import androidx.compose.material3.AssistChip
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
@@ -54,11 +59,14 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.employeeprofile.data.model.Employee
 import com.example.employeeprofile.data.model.ThemePreference
 import com.example.employeeprofile.platform.rememberPdfExporter
+import com.example.employeeprofile.view.component.Avatar
 import com.example.employeeprofile.view.component.ConfirmDialog
 import com.example.employeeprofile.view.component.EmptyState
 import com.example.employeeprofile.view.component.SearchField
@@ -74,6 +82,9 @@ private val LIST_BOTTOM_PADDING = 96.dp
 private const val LOAD_MORE_THRESHOLD = 5
 
 private const val LOADING_ITEM_KEY = "loading"
+
+private val RECENT_AVATAR_SIZE = 44.dp
+private val RECENT_ITEM_WIDTH = 64.dp
 
 /** A new row slides up from a quarter of its own height. */
 private const val SLIDE_IN_FRACTION = 4
@@ -101,6 +112,8 @@ fun EmployeeListScreen(
     val sort by vm.sort.collectAsStateWithLifecycle()
     val hasMore by vm.hasMore.collectAsStateWithLifecycle()
     val matchingAll by vm.matchingAll.collectAsStateWithLifecycle()
+    val suggestions by vm.suggestions.collectAsStateWithLifecycle()
+    val recent by vm.recent.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
 
     // Asks for the next page once the end is within a screenful, rather than at the very last
@@ -206,6 +219,13 @@ fun EmployeeListScreen(
                 placeholder = "Search name, email or department",
                 modifier = Modifier.padding(horizontal = Spacing.medium)
             )
+            if (suggestions.isNotEmpty()) {
+                SuggestionRow(suggestions = suggestions, onChoose = vm::onSuggestionChosen)
+            }
+            // Only offered when the list isn't already narrowed to something specific.
+            if (recent.isNotEmpty() && searchQuery.isBlank()) {
+                RecentlyViewedRow(employees = recent, onOpen = onViewEmployee)
+            }
             SortMenu(
                 sort = sort,
                 onSortChange = vm::onSortChange,
@@ -251,7 +271,8 @@ fun EmployeeListScreen(
                             sharedTransitionScope = sharedTransitionScope,
                             animatedVisibilityScope = animatedVisibilityScope,
                             onClick = { onViewEmployee(employee.id) },
-                            onLongClick = { contextMenuFor = employee }
+                            onLongClick = { contextMenuFor = employee },
+                            searchQuery = searchQuery
                         )
                         // Anchored to the card it was opened from, so it points at the right row.
                         DropdownMenu(
@@ -297,6 +318,62 @@ fun EmployeeListScreen(
                             CircularProgressIndicator(strokeWidth = 2.dp)
                         }
                     }
+                }
+            }
+        }
+    }
+}
+
+/** Name completions from the trie, offered while a search is being typed. */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SuggestionRow(suggestions: List<String>, onChoose: (String) -> Unit) {
+    LazyRow(
+        contentPadding = PaddingValues(horizontal = Spacing.medium),
+        horizontalArrangement = Arrangement.spacedBy(Spacing.small)
+    ) {
+        items(items = suggestions, key = { it }) { name ->
+            AssistChip(onClick = { onChoose(name) }, label = { Text(name) })
+        }
+    }
+}
+
+/** The last few employees opened, newest first. */
+@Composable
+private fun RecentlyViewedRow(employees: List<Employee>, onOpen: (Long) -> Unit) {
+    Column(modifier = Modifier.padding(top = Spacing.small)) {
+        Text(
+            text = "Recently viewed",
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(horizontal = Spacing.medium)
+        )
+        LazyRow(
+            modifier = Modifier.padding(top = Spacing.xSmall),
+            contentPadding = PaddingValues(horizontal = Spacing.medium),
+            horizontalArrangement = Arrangement.spacedBy(Spacing.medium)
+        ) {
+            items(items = employees, key = { it.id }) { employee ->
+                Column(
+                    modifier = Modifier
+                        .width(RECENT_ITEM_WIDTH)
+                        .clickable { onOpen(employee.id) },
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Avatar(
+                        fullName = employee.fullName,
+                        size = RECENT_AVATAR_SIZE,
+                        imagePath = employee.profileImagePath
+                    )
+                    Text(
+                        text = employee.fullName,
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.padding(top = Spacing.xSmall)
+                    )
                 }
             }
         }

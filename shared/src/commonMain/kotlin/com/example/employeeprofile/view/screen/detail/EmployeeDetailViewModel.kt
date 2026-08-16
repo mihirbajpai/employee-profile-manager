@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.employeeprofile.data.model.Employee
 import com.example.employeeprofile.data.repository.EmployeeRepository
+import com.example.employeeprofile.domain.algo.RecentlyViewed
 import com.example.employeeprofile.view.DataState
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,7 +21,10 @@ import kotlinx.coroutines.flow.stateIn
  * leaving a stale record on screen.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
-class EmployeeDetailViewModel(repository: EmployeeRepository) : ViewModel() {
+class EmployeeDetailViewModel(
+    repository: EmployeeRepository,
+    private val recentlyViewed: RecentlyViewed
+) : ViewModel() {
 
     private val employeeId = MutableStateFlow(Employee.NO_ID)
 
@@ -42,6 +46,7 @@ class EmployeeDetailViewModel(repository: EmployeeRepository) : ViewModel() {
 
     fun load(id: Long) {
         employeeId.value = id
+        recentlyViewed.record(id)
     }
 
     private companion object {
