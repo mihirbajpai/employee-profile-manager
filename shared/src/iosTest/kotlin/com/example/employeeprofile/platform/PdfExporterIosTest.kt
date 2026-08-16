@@ -1,12 +1,14 @@
 package com.example.employeeprofile.platform
 
 import com.example.employeeprofile.employee
+import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.ExperimentalForeignApi
 import platform.Foundation.NSASCIIStringEncoding
 import platform.Foundation.NSData
 import platform.Foundation.NSFileManager
 import platform.Foundation.NSMakeRange
 import platform.Foundation.NSString
+import platform.Foundation.create
 import platform.Foundation.dataUsingEncoding
 import platform.Foundation.dataWithContentsOfFile
 import platform.Foundation.isEqualToData
@@ -21,7 +23,7 @@ import kotlin.test.assertTrue
  * they're handed, so the only way to know the document is actually produced — and is a PDF —
  * is to generate one and read the bytes back.
  */
-@OptIn(ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
 class PdfExporterIosTest {
 
     private fun bytesAt(path: String): NSData? = NSData.dataWithContentsOfFile(path)
@@ -42,7 +44,7 @@ class PdfExporterIosTest {
         val data = assertNotNull(bytesAt(path))
         assertTrue(data.length.toInt() > 0, "the PDF is empty")
 
-        val expected = ("%PDF-" as NSString).dataUsingEncoding(NSASCIIStringEncoding)
+        val expected = NSString.create(string = "%PDF-").dataUsingEncoding(NSASCIIStringEncoding)
         val actual = data.subdataWithRange(NSMakeRange(0uL, 5uL))
         assertTrue(actual.isEqualToData(assertNotNull(expected)), "missing the %PDF- header")
     }

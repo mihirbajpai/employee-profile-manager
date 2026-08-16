@@ -3,8 +3,8 @@ package com.example.employeeprofile.view.screen.list
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Sort
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -34,7 +34,7 @@ fun SortMenu(
     Box(modifier = modifier) {
         TextButton(onClick = { expanded = true }) {
             Icon(
-                imageVector = Icons.Default.Sort,
+                imageVector = Icons.AutoMirrored.Filled.Sort,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurfaceVariant
             )

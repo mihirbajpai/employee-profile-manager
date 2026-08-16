@@ -8,6 +8,12 @@ plugins {
 }
 
 kotlin {
+    // Room generates its database constructor as an `expect`/`actual` class, which the compiler
+    // still reports as Beta. The warning is about generated code, not anything written here.
+    compilerOptions {
+        freeCompilerArgs.add("-Xexpect-actual-classes")
+    }
+
     androidLibrary {
         namespace = "com.example.employeeprofile.shared"
         compileSdk = libs.versions.androidCompileSdk.get().toInt()

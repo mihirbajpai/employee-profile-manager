@@ -3,12 +3,14 @@ package com.example.employeeprofile.platform
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import com.example.employeeprofile.data.model.Employee
+import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.ExperimentalForeignApi
 import platform.CoreGraphics.CGPointMake
 import platform.CoreGraphics.CGRectMake
 import platform.Foundation.NSFileManager
 import platform.Foundation.NSString
 import platform.Foundation.NSURL
+import platform.Foundation.create
 import platform.UIKit.NSFontAttributeName
 import platform.UIKit.UIActivityViewController
 import platform.UIKit.UIFont
@@ -69,12 +71,11 @@ internal fun writePdf(employees: List<Employee>): String? {
     // drawAtPoint takes the text's top-left, where Android's drawText takes its baseline —
     // which is why this starts at the margin and the Android side starts below it.
     var y = PdfLayout.MARGIN
-    // The UIKit drawing methods are a category on NSString, so a Kotlin String can't call them.
-    (pdfTitle(employees.size) as NSString)
+    nsString(pdfTitle(employees.size))
         .drawAtPoint(CGPointMake(PdfLayout.MARGIN.toDouble(), y.toDouble()), title)
     y += PdfLayout.TITLE_GAP
     PdfLayout.HEADERS.forEachIndexed { column, text ->
-        (text as NSString).drawAtPoint(columnPoint(column, y), header)
+        nsString(text).drawAtPoint(columnPoint(column, y), header)
     }
     y += PdfLayout.ROW_HEIGHT
 
@@ -84,7 +85,7 @@ internal fun writePdf(employees: List<Employee>): String? {
             y = PdfLayout.MARGIN
         }
         employeeRow(employee).forEachIndexed { column, text ->
-            (text as NSString).drawAtPoint(columnPoint(column, y), body)
+            nsString(text).drawAtPoint(columnPoint(column, y), body)
         }
         y += PdfLayout.ROW_HEIGHT
     }
@@ -93,6 +94,14 @@ internal fun writePdf(employees: List<Employee>): String? {
     // Nothing above returns a result, so the file appearing on disk is the only success signal.
     return if (NSFileManager.defaultManager.fileExistsAtPath(path)) path else null
 }
+
+/**
+ * The UIKit drawing methods are a category on NSString, so a Kotlin String can't call them —
+ * and it can't be cast into one either, being a different type rather than a bridged view of
+ * the same object. This copies the text into a real Foundation string.
+ */
+@OptIn(BetaInteropApi::class)
+private fun nsString(text: String): NSString = NSString.create(string = text)
 
 @OptIn(ExperimentalForeignApi::class)
 private fun columnPoint(column: Int, y: Float) = CGPointMake(
