@@ -10,6 +10,13 @@ import platform.PhotosUI.PHPickerFilter
 import platform.PhotosUI.PHPickerResult
 import platform.PhotosUI.PHPickerViewController
 import platform.PhotosUI.PHPickerViewControllerDelegateProtocol
+import platform.UIKit.UIImage
+import platform.UIKit.UIImageJPEGRepresentation
+import platform.UIKit.UIImagePickerController
+import platform.UIKit.UIImagePickerControllerDelegateProtocol
+import platform.UIKit.UIImagePickerControllerOriginalImage
+import platform.UIKit.UIImagePickerControllerSourceType
+import platform.UIKit.UINavigationControllerDelegateProtocol
 import platform.darwin.NSObject
 import platform.darwin.dispatch_async
 import platform.darwin.dispatch_get_main_queue
@@ -40,15 +47,36 @@ private class IosMediaPicker(
 ) : MediaPicker {
 
     private var photoDelegate: PhotoPickerDelegate? = null
+    private var cameraDelegate: CameraDelegate? = null
 
     override fun pickImage(source: ImageSource) {
         when (source) {
             ImageSource.GALLERY -> presentPhotoPicker()
-            ImageSource.CAMERA -> onError("Camera isn't wired up yet")
+            ImageSource.CAMERA -> presentCamera()
         }
     }
 
     override fun pickDocument() = onError("Document picking isn't wired up yet")
+
+    /**
+     * The simulator has no camera, so this reports that rather than presenting a controller
+     * that would come up black. On a device it needs NSCameraUsageDescription in Info.plist.
+     */
+    private fun presentCamera() {
+        val cameraSource = UIImagePickerControllerSourceType.UIImagePickerControllerSourceTypeCamera
+        if (UIImagePickerController.isSourceTypeAvailable(cameraSource).not()) {
+            onError("This device has no camera")
+            return
+        }
+        val delegate = CameraDelegate(onImagePicked, onError)
+        cameraDelegate = delegate
+        val controller = UIImagePickerController().apply {
+            setSourceType(cameraSource)
+            setDelegate(delegate)
+        }
+        rootViewController()?.presentViewController(controller, animated = true, completion = null)
+            ?: onError("Couldn't open the camera")
+    }
 
     private fun presentPhotoPicker() {
         val configuration = PHPickerConfiguration().apply {
@@ -95,5 +123,38 @@ private class PhotoPickerDelegate(
             return
         }
         onPicked(saved)
+    }
+}
+
+/** JPEG quality for a captured photo — plenty for an 80dp avatar, a fraction of the bytes. */
+private const val CAPTURE_QUALITY = 0.9
+
+@OptIn(ExperimentalForeignApi::class)
+private class CameraDelegate(
+    private val onPicked: (PickedFile) -> Unit,
+    private val onError: (String) -> Unit
+) : NSObject(), UIImagePickerControllerDelegateProtocol, UINavigationControllerDelegateProtocol {
+
+    override fun imagePickerController(
+        picker: UIImagePickerController,
+        didFinishPickingMediaWithInfo: Map<Any?, *>
+    ) {
+        picker.dismissViewControllerAnimated(true, null)
+        val image = didFinishPickingMediaWithInfo[UIImagePickerControllerOriginalImage] as? UIImage
+        if (image == null) {
+            onError("Couldn't read that photo")
+            return
+        }
+        val data = UIImageJPEGRepresentation(image, CAPTURE_QUALITY)
+        if (data == null) {
+            onError("Couldn't encode that photo")
+            return
+        }
+        val saved = saveToAppStorage(data, "photo.jpg", mimeType = "image/jpeg")
+        if (saved == null) onError("Couldn't save that photo") else onPicked(saved)
+    }
+
+    override fun imagePickerControllerDidCancel(picker: UIImagePickerController) {
+        picker.dismissViewControllerAnimated(true, null)
     }
 }
