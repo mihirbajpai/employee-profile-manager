@@ -27,6 +27,16 @@ kotlin {
             implementation(compose.material3)
             implementation(compose.ui)
             implementation(compose.components.resources)
+
+            // Dependency injection — no manual instantiation anywhere in the app
+            api(libs.koin.core)
+            implementation(libs.koin.compose)
+            implementation(libs.koin.compose.viewmodel)
+        }
+
+        androidMain.dependencies {
+            // api, so the Application class can reach androidContext() when starting Koin
+            api(libs.koin.android)
         }
 
         commonTest.dependencies {
