@@ -40,7 +40,7 @@ actual fun rememberPdfExporter(onResult: (String) -> Unit): PdfExporter =
 
 /** Lays the roster out over as many pages as it takes and writes the file. */
 @OptIn(ExperimentalForeignApi::class)
-private fun writePdf(employees: List<Employee>): String? {
+internal fun writePdf(employees: List<Employee>): String? {
     val directory = documentsPath() + "/" + EXPORT_DIRECTORY
     NSFileManager.defaultManager.createDirectoryAtPath(directory, true, null, null)
     val path = "$directory/${PdfLayout.FILE_NAME}"
