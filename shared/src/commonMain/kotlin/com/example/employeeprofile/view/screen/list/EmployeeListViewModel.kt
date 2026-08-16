@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.milliseconds
@@ -109,12 +110,16 @@ class EmployeeListViewModel(
         }
     }.asScreenState(this, emptyList())
 
-    /** The employees opened most recently, newest first, minus anyone since deleted. */
-    val recent: StateFlow<List<Employee>> = repository.observeAll().map { all ->
-        recentlyViewed.retainAll(all.map { it.id }.toSet())
-        val byId = all.associateBy { it.id }
-        recentlyViewed.ids().mapNotNull(byId::get)
-    }.asScreenState(this, emptyList())
+    /**
+     * The employees opened most recently, newest first. Combined with the queue's own flow
+     * rather than derived from the employee list alone — opening someone changes nothing in the
+     * database, so watching only the table would leave this row stale.
+     */
+    val recent: StateFlow<List<Employee>> =
+        combine(repository.observeAll(), recentlyViewed.ids) { all, ids ->
+            val byId = all.associateBy { it.id }
+            ids.mapNotNull(byId::get)
+        }.asScreenState(this, emptyList())
 
     /** Called when the list nears its end. */
     fun onLoadMore() {
@@ -151,6 +156,8 @@ class EmployeeListViewModel(
     fun onDelete(employee: Employee) {
         viewModelScope.launch {
             repository.delete(employee)
+            // A deleted employee shouldn't keep a slot in the recently-viewed row.
+            recentlyViewed.retainAll(repository.observeAll().first().map { it.id }.toSet())
             deleted.push(employee)
             _undoPrompt.value = employee
         }

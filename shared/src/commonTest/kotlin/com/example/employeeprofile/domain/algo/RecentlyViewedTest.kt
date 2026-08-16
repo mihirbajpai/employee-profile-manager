@@ -9,14 +9,14 @@ class RecentlyViewedTest {
     fun `newest viewed comes first`() {
         val recent = RecentlyViewed()
         listOf(1L, 2L, 3L).forEach(recent::record)
-        assertEquals(listOf(3L, 2L, 1L), recent.ids())
+        assertEquals(listOf(3L, 2L, 1L), recent.ids.value)
     }
 
     @Test
     fun `viewing someone again moves them to the front rather than duplicating`() {
         val recent = RecentlyViewed()
         listOf(1L, 2L, 3L, 1L).forEach(recent::record)
-        assertEquals(listOf(1L, 3L, 2L), recent.ids())
+        assertEquals(listOf(1L, 3L, 2L), recent.ids.value)
     }
 
     @Test
@@ -30,7 +30,7 @@ class RecentlyViewedTest {
     fun `it is the oldest that is dropped when full`() {
         val recent = RecentlyViewed(capacity = 3)
         (1L..5L).forEach(recent::record)
-        assertEquals(listOf(5L, 4L, 3L), recent.ids())
+        assertEquals(listOf(5L, 4L, 3L), recent.ids.value)
     }
 
     @Test
@@ -46,7 +46,7 @@ class RecentlyViewedTest {
         val recent = RecentlyViewed()
         listOf(1L, 2L, 3L).forEach(recent::record)
         recent.retainAll(setOf(1L, 3L))
-        assertEquals(listOf(3L, 1L), recent.ids())
+        assertEquals(listOf(3L, 1L), recent.ids.value)
     }
 
 }
