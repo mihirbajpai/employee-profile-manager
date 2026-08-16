@@ -3,6 +3,8 @@ plugins {
     alias(libs.plugins.android.kotlin.multiplatform.library)
     alias(libs.plugins.compose.multiplatform)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.room)
 }
 
 kotlin {
@@ -39,6 +41,11 @@ kotlin {
             implementation(libs.jetbrains.lifecycle.viewmodel.compose)
             implementation(libs.jetbrains.lifecycle.runtime.compose)
             implementation(libs.jetbrains.navigation.compose)
+
+            // Local persistence — Room over the bundled SQLite driver, same code on both platforms
+            implementation(libs.room.runtime)
+            implementation(libs.sqlite.bundled)
+            implementation(libs.kotlinx.coroutines.core)
         }
 
         androidMain.dependencies {
@@ -56,4 +63,15 @@ compose.resources {
     // Pin the generated Res class package; it otherwise derives from the project name.
     publicResClass = true
     packageOfResClass = "com.example.employeeprofile.resources"
+}
+
+room {
+    schemaDirectory("$projectDir/schemas")
+}
+
+// Room's compiler runs per target, not once over commonMain.
+dependencies {
+    add("kspAndroid", libs.room.compiler)
+    add("kspIosArm64", libs.room.compiler)
+    add("kspIosSimulatorArm64", libs.room.compiler)
 }

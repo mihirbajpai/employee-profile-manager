@@ -17,3 +17,6 @@ xcuserdata/
 /iosApp/Pods/
 /iosApp/*.xcworkspace
 /kotlin-js-store
+
+# Kotlin Gradle plugin working directory
+.kotlin/

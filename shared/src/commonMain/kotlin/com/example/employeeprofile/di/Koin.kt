@@ -1,17 +1,22 @@
 package com.example.employeeprofile.di
 
+import com.example.employeeprofile.data.local.EmployeeDatabase
+import com.example.employeeprofile.data.local.createEmployeeDatabase
 import org.koin.core.KoinApplication
 import org.koin.core.context.startKoin
 import org.koin.core.module.Module
 import org.koin.dsl.KoinAppDeclaration
 import org.koin.dsl.module
 
-/** Bindings both platforms share — repositories, view models, anything in commonMain. */
+/** Bindings both platforms share — the database, repositories, view models. */
 val sharedModule = module {
+    // The builder comes from [platformModule]; only the file location differs per platform.
+    single { createEmployeeDatabase(get()) }
+    single { get<EmployeeDatabase>().employeeDao() }
 }
 
 /**
- * What each platform brings of its own: the database driver, file storage and the media
+ * What each platform brings of its own: the database file location, file storage and the media
  * pickers. Declared here so [initKoin] can load it without knowing which platform it's on.
  */
 expect val platformModule: Module
