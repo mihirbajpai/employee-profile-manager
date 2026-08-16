@@ -1,5 +1,8 @@
 package com.example.employeeprofile.view.screen.detail
 
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,13 +14,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.animation.AnimatedVisibilityScope
-import androidx.compose.animation.ExperimentalSharedTransitionApi
-import androidx.compose.animation.SharedTransitionScope
-import androidx.compose.foundation.background
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
@@ -28,7 +25,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -41,14 +37,16 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.employeeprofile.data.model.Employee
 import com.example.employeeprofile.view.DataState
 import com.example.employeeprofile.view.component.Avatar
-import com.example.employeeprofile.view.screen.list.avatarSharedKey
+import com.example.employeeprofile.view.component.CardSurface
+import com.example.employeeprofile.view.component.LabelledValue
 import com.example.employeeprofile.view.component.EmptyState
 import com.example.employeeprofile.view.component.Pill
+import com.example.employeeprofile.view.component.ResumeField
 import com.example.employeeprofile.view.component.ScreenTopBar
 import com.example.employeeprofile.view.component.StatusIndicator
-import com.example.employeeprofile.view.component.ResumeField
 import com.example.employeeprofile.view.formatDate
 import com.example.employeeprofile.view.formatSalary
+import com.example.employeeprofile.view.screen.list.avatarSharedKey
 import com.example.employeeprofile.view.statusLabel
 import com.example.employeeprofile.view.theme.Spacing
 import org.koin.compose.viewmodel.koinViewModel
@@ -201,30 +199,19 @@ private fun Section(title: String, content: @Composable () -> Unit) {
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         modifier = Modifier.padding(top = Spacing.medium, bottom = Spacing.small)
     )
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
-        color = MaterialTheme.colorScheme.surface
-    ) {
+    CardSurface {
         Column(modifier = Modifier.padding(Spacing.medium)) { content() }
     }
 }
 
-/** Label on the left, value on the right, wrapping onto its own line when it's long. */
+/** A labelled field, ruled off from the next one. */
 @Composable
 private fun DetailRow(label: String, value: String) {
-    Column(modifier = Modifier.padding(vertical = Spacing.xSmall)) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Text(
-            text = value.ifBlank { "—" },
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurface
-        )
-    }
+    LabelledValue(
+        label = label,
+        value = value,
+        modifier = Modifier.padding(vertical = Spacing.xSmall)
+    )
     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 }
 

@@ -13,14 +13,14 @@ import platform.PhotosUI.PHPickerFilter
 import platform.PhotosUI.PHPickerResult
 import platform.PhotosUI.PHPickerViewController
 import platform.PhotosUI.PHPickerViewControllerDelegateProtocol
+import platform.UIKit.UIDocumentPickerDelegateProtocol
+import platform.UIKit.UIDocumentPickerViewController
 import platform.UIKit.UIImage
 import platform.UIKit.UIImageJPEGRepresentation
 import platform.UIKit.UIImagePickerController
 import platform.UIKit.UIImagePickerControllerDelegateProtocol
 import platform.UIKit.UIImagePickerControllerOriginalImage
 import platform.UIKit.UIImagePickerControllerSourceType
-import platform.UIKit.UIDocumentPickerDelegateProtocol
-import platform.UIKit.UIDocumentPickerViewController
 import platform.UIKit.UINavigationControllerDelegateProtocol
 import platform.UniformTypeIdentifiers.UTType
 import platform.darwin.NSObject
@@ -239,6 +239,7 @@ internal fun mimeTypeFor(name: String): String = when {
     name.endsWith(".pdf", ignoreCase = true) -> "application/pdf"
     name.endsWith(".docx", ignoreCase = true) ->
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+
     name.endsWith(".doc", ignoreCase = true) -> "application/msword"
     else -> ""
 }

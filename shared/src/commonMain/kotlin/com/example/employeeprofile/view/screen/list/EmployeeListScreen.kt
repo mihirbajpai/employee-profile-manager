@@ -17,10 +17,10 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BrightnessAuto
@@ -30,7 +30,6 @@ import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Badge
-import androidx.compose.material3.AssistChip
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
@@ -181,16 +180,16 @@ fun EmployeeListScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             ScreenTopBar(title = "Employees") {
-                    ThemeAction(preference = themePreference, onClick = onCycleTheme)
-                    FilterAction(
-                        selectionCount = filters.selectionCount,
-                        onClick = { showFilters = true }
-                    )
-                    OverflowMenu(
-                        onViewTopEarners = onViewTopEarners,
-                        onViewSummary = onViewSummary,
-                        onExportPdf = { pdfExporter.export(matchingAll) }
-                    )
+                ThemeAction(preference = themePreference, onClick = onCycleTheme)
+                FilterAction(
+                    selectionCount = filters.selectionCount,
+                    onClick = { showFilters = true }
+                )
+                OverflowMenu(
+                    onViewTopEarners = onViewTopEarners,
+                    onViewSummary = onViewSummary,
+                    onExportPdf = { pdfExporter.export(matchingAll) }
+                )
             }
         },
         floatingActionButton = {
@@ -256,46 +255,46 @@ fun EmployeeListScreen(
                         exit = fadeOut() + shrinkVertically(),
                         modifier = Modifier.animateItem()
                     ) {
-                    Box {
-                        EmployeeCard(
-                            employee = employee,
-                            sharedTransitionScope = sharedTransitionScope,
-                            animatedVisibilityScope = animatedVisibilityScope,
-                            onClick = { onViewEmployee(employee.id) },
-                            onLongClick = { contextMenuFor = employee },
-                            searchQuery = searchQuery
-                        )
-                        // Anchored to the card it was opened from, so it points at the right row.
-                        DropdownMenu(
-                            expanded = contextMenuFor?.id == employee.id,
-                            onDismissRequest = { contextMenuFor = null },
-                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-                        ) {
-                            DropdownMenuItem(
-                                text = { Text("View details") },
-                                onClick = {
-                                    contextMenuFor = null
-                                    onViewEmployee(employee.id)
-                                }
+                        Box {
+                            EmployeeCard(
+                                employee = employee,
+                                sharedTransitionScope = sharedTransitionScope,
+                                animatedVisibilityScope = animatedVisibilityScope,
+                                onClick = { onViewEmployee(employee.id) },
+                                onLongClick = { contextMenuFor = employee },
+                                searchQuery = searchQuery
                             )
-                            DropdownMenuItem(
-                                text = { Text("Edit") },
-                                onClick = {
-                                    contextMenuFor = null
-                                    onEditEmployee(employee.id)
-                                }
-                            )
-                            DropdownMenuItem(
-                                text = {
-                                    Text("Delete", color = MaterialTheme.colorScheme.error)
-                                },
-                                onClick = {
-                                    contextMenuFor = null
-                                    pendingDelete = employee
-                                }
-                            )
+                            // Anchored to the card it was opened from, so it points at the right row.
+                            DropdownMenu(
+                                expanded = contextMenuFor?.id == employee.id,
+                                onDismissRequest = { contextMenuFor = null },
+                                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+                            ) {
+                                DropdownMenuItem(
+                                    text = { Text("View details") },
+                                    onClick = {
+                                        contextMenuFor = null
+                                        onViewEmployee(employee.id)
+                                    }
+                                )
+                                DropdownMenuItem(
+                                    text = { Text("Edit") },
+                                    onClick = {
+                                        contextMenuFor = null
+                                        onEditEmployee(employee.id)
+                                    }
+                                )
+                                DropdownMenuItem(
+                                    text = {
+                                        Text("Delete", color = MaterialTheme.colorScheme.error)
+                                    },
+                                    onClick = {
+                                        contextMenuFor = null
+                                        pendingDelete = employee
+                                    }
+                                )
+                            }
                         }
-                    }
                     }
                 }
                 if (hasMore) {

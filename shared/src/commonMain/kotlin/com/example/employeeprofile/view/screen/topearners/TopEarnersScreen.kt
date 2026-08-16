@@ -11,12 +11,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -29,6 +27,7 @@ import com.example.employeeprofile.data.model.Employee
 import com.example.employeeprofile.domain.algo.MAX_TOP_COUNT
 import com.example.employeeprofile.domain.algo.MIN_TOP_COUNT
 import com.example.employeeprofile.view.component.Avatar
+import com.example.employeeprofile.view.component.CardSurface
 import com.example.employeeprofile.view.component.EmptyState
 import com.example.employeeprofile.view.component.ScreenTopBar
 import com.example.employeeprofile.view.formatSalary
@@ -102,11 +101,7 @@ private fun CountStepper(count: Int, onChange: (Int) -> Unit, modifier: Modifier
 
 @Composable
 private fun RankedCard(rank: Int, employee: Employee) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
-        color = MaterialTheme.colorScheme.surface
-    ) {
+    CardSurface {
         Row(
             modifier = Modifier.padding(Spacing.medium),
             verticalAlignment = Alignment.CenterVertically

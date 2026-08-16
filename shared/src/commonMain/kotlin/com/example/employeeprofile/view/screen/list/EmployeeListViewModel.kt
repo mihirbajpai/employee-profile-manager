@@ -17,7 +17,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.milliseconds
@@ -32,8 +31,19 @@ class EmployeeListViewModel(
     private val recentlyViewed: RecentlyViewed
 ) : ViewModel() {
 
-    /** Rebuilt whenever the roster changes; drives the type-ahead suggestions. */
-    private val nameTrie = NameTrie()
+    /**
+     * One subscription to the table, shared by everything below. Calling observeAll() per flow
+     * would have Room run the query — and keep an invalidation observer — once for each.
+     */
+    private val allEmployees: StateFlow<List<Employee>> =
+        repository.observeAll().asScreenState(this, emptyList())
+
+    /**
+     * The prefix index, rebuilt only when the roster changes. Rebuilding it inside the
+     * suggestions flow would redo the whole trie on every keystroke.
+     */
+    private val nameIndex: Flow<NameTrie> =
+        allEmployees.map { employees -> NameTrie().apply { reset(employees) } }
 
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
@@ -60,7 +70,7 @@ class EmployeeListViewModel(
      * anything and any one of them changing re-emits the finished list.
      */
     private val matching: Flow<List<Employee>> = combine(
-        repository.observeAll(),
+        allEmployees,
         // Debouncing an empty query would delay the first frame for no reason.
         _searchQuery.debounce { if (it.isEmpty()) 0.milliseconds else SEARCH_DEBOUNCE },
         _filters,
@@ -97,16 +107,12 @@ class EmployeeListViewModel(
      * Names starting with what's been typed, from the trie. Empty once the query matches
      * nothing new to offer — there's no point suggesting a name that's already been typed out.
      */
-    val suggestions: StateFlow<List<String>> = combine(
-        matchingAll,
-        repository.observeAll(),
-        _searchQuery
-    ) { _, all, query ->
-        nameTrie.reset(all)
-        if (query.trim().length < MIN_PREFIX) {
+    val suggestions: StateFlow<List<String>> = combine(nameIndex, _searchQuery) { trie, query ->
+        val prefix = query.trim()
+        if (prefix.length < MIN_PREFIX) {
             emptyList()
         } else {
-            nameTrie.suggest(query).filterNot { it.equals(query.trim(), ignoreCase = true) }
+            trie.suggest(prefix).filterNot { it.equals(prefix, ignoreCase = true) }
         }
     }.asScreenState(this, emptyList())
 
@@ -116,7 +122,7 @@ class EmployeeListViewModel(
      * database, so watching only the table would leave this row stale.
      */
     val recent: StateFlow<List<Employee>> =
-        combine(repository.observeAll(), recentlyViewed.ids) { all, ids ->
+        combine(allEmployees, recentlyViewed.ids) { all, ids ->
             val byId = all.associateBy { it.id }
             ids.mapNotNull(byId::get)
         }.asScreenState(this, emptyList())
@@ -157,7 +163,7 @@ class EmployeeListViewModel(
         viewModelScope.launch {
             repository.delete(employee)
             // A deleted employee shouldn't keep a slot in the recently-viewed row.
-            recentlyViewed.retainAll(repository.observeAll().first().map { it.id }.toSet())
+            recentlyViewed.retainAll(allEmployees.value.map { it.id }.toSet())
             deleted.push(employee)
             _undoPrompt.value = employee
         }
@@ -204,8 +210,8 @@ class EmployeeListViewModel(
         val trimmed = query.trim()
         if (trimmed.isEmpty()) return true
         return fullName.contains(trimmed, ignoreCase = true) ||
-            email.contains(trimmed, ignoreCase = true) ||
-            department.label.contains(trimmed, ignoreCase = true)
+                email.contains(trimmed, ignoreCase = true) ||
+                department.label.contains(trimmed, ignoreCase = true)
     }
 
     private companion object {

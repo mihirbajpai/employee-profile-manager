@@ -56,14 +56,20 @@ class DocumentPickerIosTest {
     @Test
     fun `a file exactly on the limit is allowed`() {
         var picked: PickedFile? = null
-        readPickedDocument(fileOf("exact.pdf", ResumeDocument.MAX_BYTES.toInt()), { picked = it }, {})
+        readPickedDocument(
+            fileOf("exact.pdf", ResumeDocument.MAX_BYTES.toInt()),
+            { picked = it },
+            {})
         assertNotNull(picked)
     }
 
     @Test
     fun `a url pointing at nothing reports rather than crashing`() {
         var error: String? = null
-        readPickedDocument(NSURL.fileURLWithPath(documentsPath() + "/missing.pdf"), {}, { error = it })
+        readPickedDocument(
+            NSURL.fileURLWithPath(documentsPath() + "/missing.pdf"),
+            {},
+            { error = it })
         assertEquals("Couldn't read that file", error)
     }
 

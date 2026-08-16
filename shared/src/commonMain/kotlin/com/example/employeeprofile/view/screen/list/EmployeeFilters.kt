@@ -19,6 +19,6 @@ data class EmployeeFilters(
 
     fun matches(employee: Employee): Boolean =
         (departments.isEmpty() || employee.department in departments) &&
-            (employmentTypes.isEmpty() || employee.employmentType in employmentTypes) &&
-            (isActive == null || employee.isActive == isActive)
+                (employmentTypes.isEmpty() || employee.employmentType in employmentTypes) &&
+                (isActive == null || employee.isActive == isActive)
 }

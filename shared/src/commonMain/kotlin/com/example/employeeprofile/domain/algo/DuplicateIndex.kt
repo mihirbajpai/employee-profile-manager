@@ -84,7 +84,7 @@ class DuplicateIndex {
         selfId: Long = Employee.NO_ID
     ): Boolean =
         emailOwners.takenByAnother(email.trim().lowercase(), selfId) ||
-            phoneOwners.takenByAnother(normalizedPhone, selfId)
+                phoneOwners.takenByAnother(normalizedPhone, selfId)
 
     private fun Map<String, Long>.takenByAnother(key: String, selfId: Long): Boolean {
         val owner = this[key] ?: return false

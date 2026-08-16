@@ -2,15 +2,15 @@ package com.example.employeeprofile.platform
 
 import com.example.employeeprofile.employee
 import kotlinx.cinterop.ExperimentalForeignApi
-import platform.Foundation.NSData
 import platform.Foundation.NSASCIIStringEncoding
+import platform.Foundation.NSData
 import platform.Foundation.NSFileManager
 import platform.Foundation.NSMakeRange
 import platform.Foundation.NSString
 import platform.Foundation.dataUsingEncoding
+import platform.Foundation.dataWithContentsOfFile
 import platform.Foundation.isEqualToData
 import platform.Foundation.subdataWithRange
-import platform.Foundation.dataWithContentsOfFile
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull

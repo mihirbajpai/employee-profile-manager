@@ -11,20 +11,19 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.employeeprofile.domain.algo.DepartmentSummary
+import com.example.employeeprofile.view.component.CardSurface
+import com.example.employeeprofile.view.component.LabelledValue
 import com.example.employeeprofile.view.component.EmptyState
 import com.example.employeeprofile.view.component.Pill
 import com.example.employeeprofile.view.component.ScreenTopBar
@@ -70,11 +69,7 @@ fun DepartmentSummaryScreen(
 
 @Composable
 private fun SummaryCard(summary: DepartmentSummary) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
-        color = MaterialTheme.colorScheme.surface
-    ) {
+    CardSurface {
         Column(modifier = Modifier.padding(Spacing.medium)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Pill(
@@ -93,17 +88,17 @@ private fun SummaryCard(summary: DepartmentSummary) {
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             Spacer(Modifier.height(Spacing.small))
             Row(modifier = Modifier.fillMaxWidth()) {
-                Metric(
+                LabelledValue(
                     label = "Active",
                     value = "${summary.activeCount} of ${summary.headcount}",
                     modifier = Modifier.weight(1f)
                 )
-                Metric(
+                LabelledValue(
                     label = "Average",
                     value = formatSalary(summary.averageSalary),
                     modifier = Modifier.weight(1f)
                 )
-                Metric(
+                LabelledValue(
                     label = "Total",
                     value = formatSalary(summary.totalSalary),
                     modifier = Modifier.weight(1f)
@@ -113,21 +108,6 @@ private fun SummaryCard(summary: DepartmentSummary) {
     }
 }
 
-@Composable
-private fun Metric(label: String, value: String, modifier: Modifier = Modifier) {
-    Column(modifier = modifier) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurface
-        )
-    }
-}
 
 private fun pluralHeadcount(count: Int): String =
     if (count == 1) "1 employee" else "$count employees"

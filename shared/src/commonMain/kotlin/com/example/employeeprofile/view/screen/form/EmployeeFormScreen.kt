@@ -37,8 +37,8 @@ import com.example.employeeprofile.view.component.LabeledSwitch
 import com.example.employeeprofile.view.component.LabeledTextField
 import com.example.employeeprofile.view.component.ProfileImageField
 import com.example.employeeprofile.view.component.RadioGroup
-import com.example.employeeprofile.view.component.ScreenTopBar
 import com.example.employeeprofile.view.component.ResumeField
+import com.example.employeeprofile.view.component.ScreenTopBar
 import com.example.employeeprofile.view.theme.Spacing
 import org.koin.compose.viewmodel.koinViewModel
 

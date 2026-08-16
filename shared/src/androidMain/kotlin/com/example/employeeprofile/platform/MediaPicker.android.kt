@@ -106,7 +106,7 @@ actual fun rememberMediaPicker(
 
 private fun Context.hasCameraPermission(): Boolean =
     ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) ==
-        PackageManager.PERMISSION_GRANTED
+            PackageManager.PERMISSION_GRANTED
 
 /**
  * Copies what the picker returned into the app's own files, so the path keeps working after

@@ -10,8 +10,8 @@ import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -39,57 +39,57 @@ fun EmployeeApp(settingsViewModel: SettingsViewModel = koinViewModel()) {
         val formRoute = "${Screen.FORM.route}/{$ARG_EMPLOYEE_ID}"
         val detailRoute = "${Screen.DETAIL.route}/{$ARG_EMPLOYEE_ID}"
         SharedTransitionLayout {
-        NavHost(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
-                .safeDrawingPadding(),
-            navController = navController,
-            startDestination = Screen.LIST.route,
-            enterTransition = { fadeIn() },
-            exitTransition = { fadeOut() }
-        ) {
-            composable(Screen.LIST.route) {
-                EmployeeListScreen(
-                    sharedTransitionScope = this@SharedTransitionLayout,
-                    animatedVisibilityScope = this@composable,
-                    themePreference = themePreference,
-                    onCycleTheme = settingsViewModel::onCycleTheme,
-                    onAddEmployee = {
-                        navController.navigate(Screen.FORM.withArgs(Employee.NO_ID))
-                    },
-                    onEditEmployee = { navController.navigate(Screen.FORM.withArgs(it)) },
-                    onViewEmployee = { navController.navigate(Screen.DETAIL.withArgs(it)) },
-                    onViewTopEarners = { navController.navigate(Screen.TOP_EARNERS.route) },
-                    onViewSummary = { navController.navigate(Screen.SUMMARY.route) }
-                )
-            }
+            NavHost(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.background)
+                    .safeDrawingPadding(),
+                navController = navController,
+                startDestination = Screen.LIST.route,
+                enterTransition = { fadeIn() },
+                exitTransition = { fadeOut() }
+            ) {
+                composable(Screen.LIST.route) {
+                    EmployeeListScreen(
+                        sharedTransitionScope = this@SharedTransitionLayout,
+                        animatedVisibilityScope = this@composable,
+                        themePreference = themePreference,
+                        onCycleTheme = settingsViewModel::onCycleTheme,
+                        onAddEmployee = {
+                            navController.navigate(Screen.FORM.withArgs(Employee.NO_ID))
+                        },
+                        onEditEmployee = { navController.navigate(Screen.FORM.withArgs(it)) },
+                        onViewEmployee = { navController.navigate(Screen.DETAIL.withArgs(it)) },
+                        onViewTopEarners = { navController.navigate(Screen.TOP_EARNERS.route) },
+                        onViewSummary = { navController.navigate(Screen.SUMMARY.route) }
+                    )
+                }
 
-            composable(route = formRoute, arguments = employeeIdArgument) { entry ->
-                EmployeeFormScreen(
-                    employeeId = entry.employeeId(),
-                    onDone = navController::navigateUp
-                )
-            }
+                composable(route = formRoute, arguments = employeeIdArgument) { entry ->
+                    EmployeeFormScreen(
+                        employeeId = entry.employeeId(),
+                        onDone = navController::navigateUp
+                    )
+                }
 
-            composable(route = detailRoute, arguments = employeeIdArgument) { entry ->
-                EmployeeDetailScreen(
-                    sharedTransitionScope = this@SharedTransitionLayout,
-                    animatedVisibilityScope = this@composable,
-                    employeeId = entry.employeeId(),
-                    onEdit = { navController.navigate(Screen.FORM.withArgs(it)) },
-                    onBack = navController::navigateUp
-                )
-            }
+                composable(route = detailRoute, arguments = employeeIdArgument) { entry ->
+                    EmployeeDetailScreen(
+                        sharedTransitionScope = this@SharedTransitionLayout,
+                        animatedVisibilityScope = this@composable,
+                        employeeId = entry.employeeId(),
+                        onEdit = { navController.navigate(Screen.FORM.withArgs(it)) },
+                        onBack = navController::navigateUp
+                    )
+                }
 
-            composable(Screen.TOP_EARNERS.route) {
-                TopEarnersScreen(onBack = navController::navigateUp)
-            }
+                composable(Screen.TOP_EARNERS.route) {
+                    TopEarnersScreen(onBack = navController::navigateUp)
+                }
 
-            composable(Screen.SUMMARY.route) {
-                DepartmentSummaryScreen(onBack = navController::navigateUp)
+                composable(Screen.SUMMARY.route) {
+                    DepartmentSummaryScreen(onBack = navController::navigateUp)
+                }
             }
-        }
         }
     }
 }

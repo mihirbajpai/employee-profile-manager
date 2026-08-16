@@ -9,14 +9,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -25,11 +21,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.employeeprofile.data.model.Employee
 import com.example.employeeprofile.view.component.Avatar
+import com.example.employeeprofile.view.component.CardSurface
 import com.example.employeeprofile.view.component.Pill
 import com.example.employeeprofile.view.component.StatusIndicator
 import com.example.employeeprofile.view.formatDate
-import com.example.employeeprofile.view.highlight
 import com.example.employeeprofile.view.formatSalary
+import com.example.employeeprofile.view.highlight
 import com.example.employeeprofile.view.theme.Spacing
 
 private val AVATAR_SIZE = 48.dp
@@ -48,11 +45,7 @@ fun EmployeeCard(
     modifier: Modifier = Modifier,
     searchQuery: String = ""
 ) {
-    Surface(
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
-        color = MaterialTheme.colorScheme.surface
-    ) {
+    CardSurface(modifier = modifier) {
         Row(
             modifier = Modifier
                 .combinedClickable(onClick = onClick, onLongClick = onLongClick)
