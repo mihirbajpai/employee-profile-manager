@@ -30,6 +30,19 @@ fun formatSalary(salary: Double): String {
     return "₹$grouped,$lastThree"
 }
 
+/** Rank labels for the top-earners list: 1 becomes "1st", 12 becomes "12th". */
+fun ordinal(rank: Int): String {
+    val suffix = when {
+        // 11th, 12th and 13th break the pattern the last digit would otherwise give.
+        rank % 100 in 11..13 -> "th"
+        rank % 10 == 1 -> "st"
+        rank % 10 == 2 -> "nd"
+        rank % 10 == 3 -> "rd"
+        else -> "th"
+    }
+    return "$rank$suffix"
+}
+
 /** Up to two letters for the avatar when there's no profile photo — "Priya Sharma" becomes PS. */
 fun initialsOf(fullName: String): String =
     fullName.trim()
