@@ -20,11 +20,16 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,10 +42,14 @@ import com.example.employeeprofile.view.component.ConfirmDialog
 import com.example.employeeprofile.view.component.EmptyState
 import com.example.employeeprofile.view.component.SearchField
 import com.example.employeeprofile.view.theme.Spacing
+import kotlinx.coroutines.withTimeoutOrNull
 import org.koin.compose.viewmodel.koinViewModel
 
 /** Leaves room under the last card so the floating button never covers it. */
 private val LIST_BOTTOM_PADDING = 96.dp
+
+/** How long the undo offer stays up, per the brief. */
+private const val UNDO_TIMEOUT_MS = 5_000L
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -58,6 +67,22 @@ fun EmployeeListScreen(
     var showFilters by remember { mutableStateOf(false) }
     var contextMenuFor by remember { mutableStateOf<Employee?>(null) }
     var pendingDelete by remember { mutableStateOf<Employee?>(null) }
+    val undoPrompt by vm.undoPrompt.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    // Material's own durations are 4s and 10s; the brief asks for 5, so the snackbar is shown
+    // indefinitely and this timeout takes it away.
+    LaunchedEffect(undoPrompt) {
+        val employee = undoPrompt ?: return@LaunchedEffect
+        val result = withTimeoutOrNull(UNDO_TIMEOUT_MS) {
+            snackbarHostState.showSnackbar(
+                message = "${employee.fullName} deleted",
+                actionLabel = "Undo",
+                duration = SnackbarDuration.Indefinite
+            )
+        }
+        if (result == SnackbarResult.ActionPerformed) vm.onUndoDelete() else vm.onUndoPromptShown()
+    }
 
     if (showFilters) {
         FilterSheet(
@@ -86,6 +111,7 @@ fun EmployeeListScreen(
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text("Employees") },

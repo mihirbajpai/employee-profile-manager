@@ -62,6 +62,17 @@ class EmployeeRepository(
         duplicates.add(employee)
     }
 
+    /**
+     * Puts a deleted record back exactly as it was — same id, same createdAt. Room's
+     * autoGenerate only assigns an id when the one given is zero, so the original survives and
+     * anything that referenced it still lines up.
+     */
+    suspend fun restore(employee: Employee) {
+        ensureIndex()
+        dao.insert(employee.toEntity())
+        duplicates.add(employee)
+    }
+
     suspend fun delete(employee: Employee) {
         ensureIndex()
         dao.delete(employee.toEntity())

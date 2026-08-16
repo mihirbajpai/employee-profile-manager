@@ -6,6 +6,7 @@ import com.example.employeeprofile.data.model.Department
 import com.example.employeeprofile.data.model.Employee
 import com.example.employeeprofile.data.model.EmploymentType
 import com.example.employeeprofile.data.repository.EmployeeRepository
+import com.example.employeeprofile.domain.algo.UndoStack
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -29,6 +30,13 @@ class EmployeeListViewModel(private val repository: EmployeeRepository) : ViewMo
 
     private val _filters = MutableStateFlow(EmployeeFilters())
     val filters: StateFlow<EmployeeFilters> = _filters.asStateFlow()
+
+    /** Deleted records, newest first, so a mistaken delete can be taken back. */
+    private val deleted = UndoStack<Employee>()
+
+    /** The employee the undo snackbar is currently offering to bring back, if any. */
+    private val _undoPrompt = MutableStateFlow<Employee?>(null)
+    val undoPrompt: StateFlow<Employee?> = _undoPrompt.asStateFlow()
 
     /** Held here rather than in the composable, so it survives navigating away and back. */
     private val _sort = MutableStateFlow(EmployeeSort.NAME_ASC)
@@ -77,7 +85,24 @@ class EmployeeListViewModel(private val repository: EmployeeRepository) : ViewMo
     }
 
     fun onDelete(employee: Employee) {
-        viewModelScope.launch { repository.delete(employee) }
+        viewModelScope.launch {
+            repository.delete(employee)
+            deleted.push(employee)
+            _undoPrompt.value = employee
+        }
+    }
+
+    /** Pops the most recent deletion and puts it back. */
+    fun onUndoDelete() {
+        viewModelScope.launch {
+            deleted.pop()?.let { repository.restore(it) }
+            _undoPrompt.value = null
+        }
+    }
+
+    /** The snackbar timed out or was dismissed; the record stays deleted. */
+    fun onUndoPromptShown() {
+        _undoPrompt.value = null
     }
 
     fun onSortChange(sort: EmployeeSort) {
