@@ -92,3 +92,20 @@ dependencies {
     add("kspIosArm64", libs.room.compiler)
     add("kspIosSimulatorArm64", libs.room.compiler)
 }
+
+/**
+ * The simulator tests pick their device by asking `simctl`, which ships with Xcode but not with
+ * the Command Line Tools. Where `xcrun` can't find it the task fails before running a single
+ * test, which fails the whole build — so skip it there instead, and leave the rest of the suite
+ * to report. The tests still run wherever a full Xcode is on the path.
+ */
+val simctlAvailable = providers.exec {
+    commandLine("xcrun", "--find", "simctl")
+    isIgnoreExitValue = true
+}.result.get().exitValue == 0
+
+tasks.matching { it.name == "iosSimulatorArm64Test" }.configureEach {
+    // `enabled` rather than `onlyIf`: the latter stores its lambda in the configuration cache,
+    // and a lambda written here holds a reference to this script, which can't be serialized.
+    enabled = simctlAvailable
+}
