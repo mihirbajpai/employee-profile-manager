@@ -4,6 +4,12 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import com.example.employeeprofile.data.model.Department
+import com.example.employeeprofile.data.model.Employee
+import com.example.employeeprofile.data.model.EmploymentType
+import com.example.employeeprofile.data.model.Gender
+import com.example.employeeprofile.data.model.ResumeDocument
+import com.example.employeeprofile.data.model.Skill
 
 /**
  * How an employee is stored. Skills go in as one comma-separated column (see [Converters]);
@@ -47,3 +53,60 @@ data class EmployeeEntity(
     val createdAt: Long,
     val updatedAt: Long
 )
+
+/**
+ * Enums are stored by name. An unrecognised name means the column outlived the enum entry, so
+ * the record falls back rather than throwing and taking the whole list down with it.
+ */
+fun EmployeeEntity.toDomain(): Employee = Employee(
+    id = id,
+    fullName = fullName,
+    email = email,
+    phone = phone,
+    normalizedPhone = normalizedPhone,
+    address = address,
+    gender = enumOrFirst(gender, Gender.entries),
+    department = enumOrFirst(department, Department.entries),
+    skills = skills.mapNotNull { name -> Skill.entries.firstOrNull { it.name == name } },
+    employmentType = enumOrFirst(employmentType, EmploymentType.entries),
+    isActive = isActive,
+    joiningDate = joiningDate,
+    salary = salary,
+    profileImagePath = profileImagePath,
+    resume = resumePath?.let {
+        ResumeDocument(
+            path = it,
+            name = resumeName.orEmpty(),
+            sizeBytes = resumeSize ?: 0L,
+            mimeType = resumeMimeType.orEmpty()
+        )
+    },
+    createdAt = createdAt,
+    updatedAt = updatedAt
+)
+
+fun Employee.toEntity(): EmployeeEntity = EmployeeEntity(
+    id = id,
+    fullName = fullName,
+    email = email,
+    phone = phone,
+    normalizedPhone = normalizedPhone,
+    address = address,
+    gender = gender.name,
+    department = department.name,
+    skills = skills.map { it.name },
+    employmentType = employmentType.name,
+    isActive = isActive,
+    joiningDate = joiningDate,
+    salary = salary,
+    profileImagePath = profileImagePath,
+    resumePath = resume?.path,
+    resumeName = resume?.name,
+    resumeSize = resume?.sizeBytes,
+    resumeMimeType = resume?.mimeType,
+    createdAt = createdAt,
+    updatedAt = updatedAt
+)
+
+private fun <T : Enum<T>> enumOrFirst(stored: String, entries: List<T>): T =
+    entries.firstOrNull { it.name == stored } ?: entries.first()

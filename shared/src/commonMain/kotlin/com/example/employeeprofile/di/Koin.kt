@@ -2,6 +2,7 @@ package com.example.employeeprofile.di
 
 import com.example.employeeprofile.data.local.EmployeeDatabase
 import com.example.employeeprofile.data.local.createEmployeeDatabase
+import com.example.employeeprofile.data.repository.EmployeeRepository
 import org.koin.core.KoinApplication
 import org.koin.core.context.startKoin
 import org.koin.core.module.Module
@@ -13,6 +14,7 @@ val sharedModule = module {
     // The builder comes from [platformModule]; only the file location differs per platform.
     single { createEmployeeDatabase(get()) }
     single { get<EmployeeDatabase>().employeeDao() }
+    single { EmployeeRepository(get()) }
 }
 
 /**
