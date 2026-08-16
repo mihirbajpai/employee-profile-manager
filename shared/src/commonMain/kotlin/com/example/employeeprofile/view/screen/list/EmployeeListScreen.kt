@@ -1,6 +1,7 @@
 package com.example.employeeprofile.view.screen.list
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,6 +12,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
@@ -29,6 +32,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.employeeprofile.data.model.Employee
+import com.example.employeeprofile.view.component.ConfirmDialog
 import com.example.employeeprofile.view.component.EmptyState
 import com.example.employeeprofile.view.component.SearchField
 import com.example.employeeprofile.view.theme.Spacing
@@ -51,6 +56,8 @@ fun EmployeeListScreen(
     val filters by vm.filters.collectAsStateWithLifecycle()
     val sort by vm.sort.collectAsStateWithLifecycle()
     var showFilters by remember { mutableStateOf(false) }
+    var contextMenuFor by remember { mutableStateOf<Employee?>(null) }
+    var pendingDelete by remember { mutableStateOf<Employee?>(null) }
 
     if (showFilters) {
         FilterSheet(
@@ -60,6 +67,20 @@ fun EmployeeListScreen(
             onStatusChange = vm::onStatusChange,
             onClearAll = vm::onClearFilters,
             onDismiss = { showFilters = false }
+        )
+    }
+
+    pendingDelete?.let { employee ->
+        ConfirmDialog(
+            title = "Delete employee?",
+            message = "${employee.fullName} will be removed from the list.",
+            confirmLabel = "Delete",
+            destructive = true,
+            onConfirm = {
+                vm.onDelete(employee)
+                pendingDelete = null
+            },
+            onDismiss = { pendingDelete = null }
         )
     }
 
@@ -125,10 +146,43 @@ fun EmployeeListScreen(
                 verticalArrangement = Arrangement.spacedBy(Spacing.small)
             ) {
                 items(items = employees, key = { it.id }) { employee ->
-                    EmployeeCard(
-                        employee = employee,
-                        onClick = { onViewEmployee(employee.id) }
-                    )
+                    Box {
+                        EmployeeCard(
+                            employee = employee,
+                            onClick = { onViewEmployee(employee.id) },
+                            onLongClick = { contextMenuFor = employee }
+                        )
+                        // Anchored to the card it was opened from, so it points at the right row.
+                        DropdownMenu(
+                            expanded = contextMenuFor?.id == employee.id,
+                            onDismissRequest = { contextMenuFor = null },
+                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("View details") },
+                                onClick = {
+                                    contextMenuFor = null
+                                    onViewEmployee(employee.id)
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Edit") },
+                                onClick = {
+                                    contextMenuFor = null
+                                    onEditEmployee(employee.id)
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = {
+                                    Text("Delete", color = MaterialTheme.colorScheme.error)
+                                },
+                                onClick = {
+                                    contextMenuFor = null
+                                    pendingDelete = employee
+                                }
+                            )
+                        }
+                    }
                 }
             }
         }

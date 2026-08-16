@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.milliseconds
 
 /**
@@ -21,7 +22,7 @@ import kotlin.time.Duration.Companion.milliseconds
  * composable only draws what it receives.
  */
 @OptIn(FlowPreview::class)
-class EmployeeListViewModel(repository: EmployeeRepository) : ViewModel() {
+class EmployeeListViewModel(private val repository: EmployeeRepository) : ViewModel() {
 
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
@@ -73,6 +74,10 @@ class EmployeeListViewModel(repository: EmployeeRepository) : ViewModel() {
         _filters.value = _filters.value.copy(
             isActive = if (_filters.value.isActive == isActive) null else isActive
         )
+    }
+
+    fun onDelete(employee: Employee) {
+        viewModelScope.launch { repository.delete(employee) }
     }
 
     fun onSortChange(sort: EmployeeSort) {

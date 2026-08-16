@@ -1,7 +1,8 @@
 package com.example.employeeprofile.view.screen.list
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -33,10 +34,12 @@ import com.example.employeeprofile.view.theme.Spacing
 private val AVATAR_SIZE = 48.dp
 private val STATUS_DOT_SIZE = 8.dp
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun EmployeeCard(
     employee: Employee,
     onClick: () -> Unit,
+    onLongClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Surface(
@@ -46,7 +49,7 @@ fun EmployeeCard(
     ) {
         Row(
             modifier = Modifier
-                .clickable(onClick = onClick)
+                .combinedClickable(onClick = onClick, onLongClick = onLongClick)
                 .padding(Spacing.medium),
             verticalAlignment = Alignment.Top
         ) {
