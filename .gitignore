@@ -1,22 +1,29 @@
 *.iml
 .gradle
-/local.properties
-/.idea/*
-!/.idea/runConfigurations
+local.properties
+/.idea/
 .DS_Store
 /build
 /captures
 .externalNativeBuild
 .cxx
-local.properties
 
-# Kotlin/Native and Xcode
+# Gradle and Kotlin build output
 **/build/
-xcuserdata/
-*.xcuserstate
-/iosApp/Pods/
-/iosApp/*.xcworkspace
+.kotlin/
 /kotlin-js-store
 
-# Kotlin Gradle plugin working directory
-.kotlin/
+# Xcode
+xcuserdata/
+*.xcuserstate
+DerivedData/
+/iosApp/Pods/
+/iosApp/*.xcworkspace
+
+# Editors other than Android Studio
+.fleet/
+.vscode/
+
+# Heap dumps and stray logs
+*.hprof
+*.log
