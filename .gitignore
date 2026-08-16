@@ -27,3 +27,7 @@ DerivedData/
 # Heap dumps and stray logs
 *.hprof
 *.log
+
+# Screen recordings — linked from the README rather than committed, as videos
+# bloat history permanently and cannot be replaced by a later version.
+recordings/
