@@ -80,8 +80,9 @@ private class IosMediaPicker(
     }
 
     /**
-     * The simulator has no camera, so this reports that rather than presenting a controller
-     * that would come up black. On a device it needs NSCameraUsageDescription in Info.plist.
+     * Recent simulators do offer a simulated camera, so this isn't a device-only path — but a
+     * simulator that doesn't will report the source unavailable, and that's answered with a
+     * message rather than a controller that comes up black. Needs NSCameraUsageDescription.
      */
     private fun presentCamera() {
         val cameraSource = UIImagePickerControllerSourceType.UIImagePickerControllerSourceTypeCamera
@@ -198,28 +199,43 @@ private class DocumentPickerDelegate(
         didPickDocumentsAtURLs: List<*>
     ) {
         val url = didPickDocumentsAtURLs.firstOrNull() as? NSURL ?: return
-
-        // A picked file arrives security-scoped: readable only between these two calls.
-        val scoped = url.startAccessingSecurityScopedResource()
-        val data = NSData.dataWithContentsOfURL(url)
-        if (scoped) url.stopAccessingSecurityScopedResource()
-
-        if (data == null) {
-            onError("Couldn't read that file")
-            return
-        }
-        if (data.length.toLong() > ResumeDocument.MAX_BYTES) {
-            onError(ResumeDocument.TOO_LARGE_MESSAGE)
-            return
-        }
-        val name = url.lastPathComponent ?: "resume"
-        val saved = saveToAppStorage(data, name, mimeType = mimeTypeFor(name))
-        if (saved == null) onError("Couldn't save that file") else onPicked(saved)
+        readPickedDocument(url, onPicked, onError)
     }
 }
 
+/**
+ * Reads a picked document and files it away, or explains why it couldn't.
+ *
+ * Separate from the delegate so it can be tested: UIKit only hands us the URL, and everything
+ * that can go wrong afterwards — an unreadable file, one over the limit, a failed copy —
+ * happens in here.
+ */
+@OptIn(ExperimentalForeignApi::class)
+internal fun readPickedDocument(
+    url: NSURL,
+    onPicked: (PickedFile) -> Unit,
+    onError: (String) -> Unit
+) {
+    // A picked file arrives security-scoped: readable only between these two calls.
+    val scoped = url.startAccessingSecurityScopedResource()
+    val data = NSData.dataWithContentsOfURL(url)
+    if (scoped) url.stopAccessingSecurityScopedResource()
+
+    if (data == null) {
+        onError("Couldn't read that file")
+        return
+    }
+    if (data.length.toLong() > ResumeDocument.MAX_BYTES) {
+        onError(ResumeDocument.TOO_LARGE_MESSAGE)
+        return
+    }
+    val name = url.lastPathComponent ?: "resume"
+    val saved = saveToAppStorage(data, name, mimeType = mimeTypeFor(name))
+    if (saved == null) onError("Couldn't save that file") else onPicked(saved)
+}
+
 /** Enough of a mapping for the three types the picker offers. */
-private fun mimeTypeFor(name: String): String = when {
+internal fun mimeTypeFor(name: String): String = when {
     name.endsWith(".pdf", ignoreCase = true) -> "application/pdf"
     name.endsWith(".docx", ignoreCase = true) ->
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
