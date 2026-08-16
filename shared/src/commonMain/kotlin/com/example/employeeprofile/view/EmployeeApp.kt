@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -20,10 +22,14 @@ import com.example.employeeprofile.view.screen.form.EmployeeFormScreen
 import com.example.employeeprofile.view.screen.list.EmployeeListScreen
 import com.example.employeeprofile.view.screen.topearners.TopEarnersScreen
 import com.example.employeeprofile.view.theme.EmployeeProfileTheme
+import com.example.employeeprofile.view.theme.resolveDarkTheme
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
-fun EmployeeApp() {
-    EmployeeProfileTheme {
+fun EmployeeApp(settingsViewModel: SettingsViewModel = koinViewModel()) {
+    val themePreference by settingsViewModel.themePreference.collectAsStateWithLifecycle()
+
+    EmployeeProfileTheme(darkTheme = themePreference.resolveDarkTheme()) {
         val navController = rememberNavController()
         // Form and Detail both take an employee id; the form reads NEW_EMPLOYEE_ID as "create".
         val formRoute = "${Screen.FORM.route}/{$ARG_EMPLOYEE_ID}"
@@ -40,6 +46,8 @@ fun EmployeeApp() {
         ) {
             composable(Screen.LIST.route) {
                 EmployeeListScreen(
+                    themePreference = themePreference,
+                    onCycleTheme = settingsViewModel::onCycleTheme,
                     onAddEmployee = {
                         navController.navigate(Screen.FORM.withArgs(Employee.NO_ID))
                     },

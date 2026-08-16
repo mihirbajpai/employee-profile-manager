@@ -5,6 +5,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import com.example.employeeprofile.data.model.ThemePreference
 
 // Everything reads MaterialTheme.colorScheme, which swaps light/dark on its own.
 private val DarkColors = darkColorScheme(
@@ -50,6 +51,14 @@ private val LightColors = lightColorScheme(
     onError = LightOnError,
     errorContainer = LightErrorMuted
 )
+
+/** Turns the saved preference into the light/dark decision the theme actually needs. */
+@Composable
+fun ThemePreference.resolveDarkTheme(): Boolean = when (this) {
+    ThemePreference.SYSTEM -> isSystemInDarkTheme()
+    ThemePreference.LIGHT -> false
+    ThemePreference.DARK -> true
+}
 
 @Composable
 fun EmployeeProfileTheme(

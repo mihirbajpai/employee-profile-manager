@@ -52,6 +52,7 @@ kotlin {
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.kotlinx.datetime)
             implementation(libs.coil.compose)
+            implementation(libs.androidx.datastore.preferences)
         }
 
         androidMain.dependencies {

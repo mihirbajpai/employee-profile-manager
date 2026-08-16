@@ -9,7 +9,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.BrightnessAuto
+import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.DropdownMenu
@@ -38,6 +41,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.employeeprofile.data.model.Employee
+import com.example.employeeprofile.data.model.ThemePreference
 import com.example.employeeprofile.view.component.ConfirmDialog
 import com.example.employeeprofile.view.component.EmptyState
 import com.example.employeeprofile.view.component.SearchField
@@ -54,6 +58,8 @@ private const val UNDO_TIMEOUT_MS = 5_000L
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EmployeeListScreen(
+    themePreference: ThemePreference,
+    onCycleTheme: () -> Unit,
     onAddEmployee: () -> Unit,
     onEditEmployee: (employeeId: Long) -> Unit,
     onViewEmployee: (employeeId: Long) -> Unit,
@@ -117,6 +123,7 @@ fun EmployeeListScreen(
                 title = { Text("Employees") },
                 actions = {
                     TextButton(onClick = onViewTopEarners) { Text("Top earners") }
+                    ThemeAction(preference = themePreference, onClick = onCycleTheme)
                     FilterAction(
                         selectionCount = filters.selectionCount,
                         onClick = { showFilters = true }
@@ -212,6 +219,22 @@ fun EmployeeListScreen(
                 }
             }
         }
+    }
+}
+
+/** Steps the theme between System, Light and Dark, showing where it currently stands. */
+@Composable
+private fun ThemeAction(preference: ThemePreference, onClick: () -> Unit) {
+    IconButton(onClick = onClick) {
+        Icon(
+            imageVector = when (preference) {
+                ThemePreference.SYSTEM -> Icons.Default.BrightnessAuto
+                ThemePreference.LIGHT -> Icons.Default.LightMode
+                ThemePreference.DARK -> Icons.Default.DarkMode
+            },
+            contentDescription = "Theme: ${preference.label}",
+            tint = MaterialTheme.colorScheme.onSurface
+        )
     }
 }
 

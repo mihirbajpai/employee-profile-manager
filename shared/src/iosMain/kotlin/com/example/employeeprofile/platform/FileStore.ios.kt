@@ -47,6 +47,19 @@ internal fun saveToAppStorage(data: NSData, name: String, mimeType: String): Pic
 /** Two files picked with the same name shouldn't overwrite each other. */
 private fun uniqueName(name: String): String = "${nowMillis()}-$name"
 
+/** The app's Documents directory, where the database and settings file live. */
+@OptIn(ExperimentalForeignApi::class)
+internal fun documentsPath(): String {
+    val documents = NSFileManager.defaultManager.URLForDirectory(
+        directory = NSDocumentDirectory,
+        inDomain = NSUserDomainMask,
+        appropriateForURL = null,
+        create = false,
+        error = null
+    )
+    return requireNotNull(documents?.path) { "Documents directory is unavailable" }
+}
+
 /** The controller to present a picker from. */
 @Suppress("DEPRECATION")
 internal fun rootViewController(): UIViewController? =
