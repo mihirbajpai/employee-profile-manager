@@ -49,6 +49,7 @@ fun EmployeeListScreen(
     val employees by vm.employees.collectAsStateWithLifecycle()
     val searchQuery by vm.searchQuery.collectAsStateWithLifecycle()
     val filters by vm.filters.collectAsStateWithLifecycle()
+    val sort by vm.sort.collectAsStateWithLifecycle()
     var showFilters by remember { mutableStateOf(false) }
 
     if (showFilters) {
@@ -96,6 +97,11 @@ fun EmployeeListScreen(
                 onQueryChange = vm::onSearchQueryChange,
                 placeholder = "Search name, email or department",
                 modifier = Modifier.padding(horizontal = Spacing.medium)
+            )
+            SortMenu(
+                sort = sort,
+                onSortChange = vm::onSortChange,
+                modifier = Modifier.padding(horizontal = Spacing.small)
             )
             if (employees.isEmpty()) {
                 EmptyState(

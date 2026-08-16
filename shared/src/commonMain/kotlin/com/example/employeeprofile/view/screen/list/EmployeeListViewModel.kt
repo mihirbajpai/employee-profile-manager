@@ -29,14 +29,22 @@ class EmployeeListViewModel(repository: EmployeeRepository) : ViewModel() {
     private val _filters = MutableStateFlow(EmployeeFilters())
     val filters: StateFlow<EmployeeFilters> = _filters.asStateFlow()
 
-    /** Search and filters are folded together here so the screen never re-derives anything. */
+    /** Held here rather than in the composable, so it survives navigating away and back. */
+    private val _sort = MutableStateFlow(EmployeeSort.NAME_ASC)
+    val sort: StateFlow<EmployeeSort> = _sort.asStateFlow()
+
+    /**
+     * Search, filters and sort are folded together here, so the screen never re-derives
+     * anything and any one of them changing re-emits the finished list.
+     */
     val employees: StateFlow<List<Employee>> = combine(
         repository.observeAll(),
         // Debouncing an empty query would delay the first frame for no reason.
         _searchQuery.debounce { if (it.isEmpty()) 0.milliseconds else SEARCH_DEBOUNCE },
-        _filters
-    ) { all, query, filters ->
-        all.filter { it.matches(query) && filters.matches(it) }
+        _filters,
+        _sort
+    ) { all, query, filters, sort ->
+        all.filter { it.matches(query) && filters.matches(it) }.sortedWith(sort.comparator)
     }
         .stateIn(
             scope = viewModelScope,
@@ -65,6 +73,10 @@ class EmployeeListViewModel(repository: EmployeeRepository) : ViewModel() {
         _filters.value = _filters.value.copy(
             isActive = if (_filters.value.isActive == isActive) null else isActive
         )
+    }
+
+    fun onSortChange(sort: EmployeeSort) {
+        _sort.value = sort
     }
 
     fun onClearFilters() {
