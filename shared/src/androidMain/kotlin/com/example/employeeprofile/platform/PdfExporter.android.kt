@@ -8,14 +8,8 @@ import android.graphics.pdf.PdfDocument
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
-import androidx.core.content.FileProvider
 import com.example.employeeprofile.data.model.Employee
 import java.io.File
-
-/** Generated documents live here, separate from picked media. */
-private const val EXPORT_DIRECTORY = "exports"
-
-private const val FILE_PROVIDER_SUFFIX = ".fileprovider"
 
 @Composable
 actual fun rememberPdfExporter(onResult: (String) -> Unit): PdfExporter {
@@ -77,8 +71,8 @@ private fun Context.writePdf(employees: List<Employee>): File {
     }
     document.finishPage(page)
 
-    val directory = File(filesDir, EXPORT_DIRECTORY).apply { mkdirs() }
-    val file = File(directory, PdfLayout.FILE_NAME)
+    // Not stamped with a timestamp: each export replaces the last rather than piling up.
+    val file = appFile(EXPORT_DIRECTORY, PdfLayout.FILE_NAME, unique = false)
     file.outputStream().use(document::writeTo)
     document.close()
     return file
@@ -89,10 +83,9 @@ private fun newPageInfo(pageNumber: Int) =
 
 /** Hands the file to whatever the user has installed, through the same provider the camera uses. */
 private fun Context.share(file: File) {
-    val uri = FileProvider.getUriForFile(this, packageName + FILE_PROVIDER_SUFFIX, file)
     val send = Intent(Intent.ACTION_SEND).apply {
         type = "application/pdf"
-        putExtra(Intent.EXTRA_STREAM, uri)
+        putExtra(Intent.EXTRA_STREAM, sharableUri(file))
         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
     }
     startActivity(

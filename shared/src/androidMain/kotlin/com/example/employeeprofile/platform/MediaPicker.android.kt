@@ -15,15 +15,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
-import androidx.core.content.FileProvider
 import com.example.employeeprofile.data.model.ResumeDocument
 import java.io.File
-
-/** Where copies of picked files live, inside the app's private storage. */
-private const val MEDIA_DIRECTORY = "media"
-
-/** Must match the authority declared for the provider in the manifest. */
-private const val FILE_PROVIDER_SUFFIX = ".fileprovider"
 
 @Composable
 actual fun rememberMediaPicker(
@@ -76,14 +69,9 @@ actual fun rememberMediaPicker(
     }
 
     fun startCapture() {
-        val target = context.newMediaFile("photo.jpg")
+        val target = context.appFile(MEDIA_DIRECTORY, "photo.jpg")
         captureTarget = target
-        val uri = FileProvider.getUriForFile(
-            context,
-            context.packageName + FILE_PROVIDER_SUFFIX,
-            target
-        )
-        cameraLauncher.launch(uri)
+        cameraLauncher.launch(context.sharableUri(target))
     }
 
     val cameraPermissionLauncher = rememberLauncherForActivityResult(
@@ -120,19 +108,13 @@ private fun Context.hasCameraPermission(): Boolean =
     ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) ==
         PackageManager.PERMISSION_GRANTED
 
-/** A fresh file under the app's media directory; the timestamp keeps names from colliding. */
-private fun Context.newMediaFile(name: String): File {
-    val directory = File(filesDir, MEDIA_DIRECTORY).apply { mkdirs() }
-    return File(directory, "${System.currentTimeMillis()}-$name")
-}
-
 /**
  * Copies what the picker returned into the app's own files, so the path keeps working after
  * the temporary read grant expires.
  */
 internal fun Context.copyToAppStorage(uri: Uri, onError: (String) -> Unit): PickedFile? {
     val metadata = queryMetadata(uri)
-    val target = newMediaFile(metadata.name)
+    val target = appFile(MEDIA_DIRECTORY, metadata.name)
     return try {
         contentResolver.openInputStream(uri)?.use { input ->
             target.outputStream().use(input::copyTo)

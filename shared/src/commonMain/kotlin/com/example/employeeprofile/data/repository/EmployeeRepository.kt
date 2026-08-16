@@ -86,6 +86,4 @@ class EmployeeRepository(
         duplicates.reset(dao.getAll().map { it.toDomain() })
         indexLoaded = true
     }
-
-    suspend fun count(): Int = dao.count()
 }

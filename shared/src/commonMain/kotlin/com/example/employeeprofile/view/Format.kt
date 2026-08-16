@@ -42,6 +42,12 @@ private fun oneDecimal(value: Double): String {
     return "${rounded / 10}.${rounded % 10}"
 }
 
+/**
+ * The word for an employee's status. One place, so the chip and the detail row can't end up
+ * saying different things — every other display string in the app comes from an enum.
+ */
+fun statusLabel(isActive: Boolean): String = if (isActive) "Active" else "Inactive"
+
 /** Rank labels for the top-earners list: 1 becomes "1st", 12 becomes "12th". */
 fun ordinal(rank: Int): String {
     val suffix = when {

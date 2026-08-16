@@ -33,6 +33,4 @@ class RecentlyViewed(private val capacity: Int = DEFAULT_RECENT_CAPACITY) {
     fun retainAll(existing: Set<Long>) {
         ids.retainAll(existing)
     }
-
-    fun clear() = ids.clear()
 }

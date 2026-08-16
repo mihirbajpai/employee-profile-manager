@@ -54,11 +54,4 @@ class UndoStackTest {
         assertEquals(DEFAULT_UNDO_DEPTH, stack.size)
     }
 
-    @Test
-    fun `clear empties the stack`() {
-        val stack = UndoStack<Int>()
-        repeat(3) { stack.push(it) }
-        stack.clear()
-        assertTrue(stack.isEmpty())
-    }
 }

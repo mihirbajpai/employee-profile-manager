@@ -12,18 +12,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalIconButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -36,6 +30,7 @@ import com.example.employeeprofile.domain.algo.MAX_TOP_COUNT
 import com.example.employeeprofile.domain.algo.MIN_TOP_COUNT
 import com.example.employeeprofile.view.component.Avatar
 import com.example.employeeprofile.view.component.EmptyState
+import com.example.employeeprofile.view.component.ScreenTopBar
 import com.example.employeeprofile.view.formatSalary
 import com.example.employeeprofile.view.ordinal
 import com.example.employeeprofile.view.theme.Spacing
@@ -56,18 +51,7 @@ fun TopEarnersScreen(
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            TopAppBar(
-                title = { Text("Top earners") },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background,
-                    titleContentColor = MaterialTheme.colorScheme.onSurface
-                )
-            )
+            ScreenTopBar(title = "Top earners", onBack = onBack)
         }
     ) { padding ->
         Column(modifier = Modifier.padding(padding)) {

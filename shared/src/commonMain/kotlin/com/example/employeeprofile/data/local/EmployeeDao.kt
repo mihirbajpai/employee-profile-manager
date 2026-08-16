@@ -37,7 +37,4 @@ interface EmployeeDao {
 
     @Delete
     suspend fun delete(employee: EmployeeEntity)
-
-    @Query("SELECT COUNT(*) FROM employees")
-    suspend fun count(): Int
 }

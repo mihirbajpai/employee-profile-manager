@@ -2,7 +2,6 @@ package com.example.employeeprofile.domain.algo
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 class RecentlyViewedTest {
 
@@ -50,11 +49,4 @@ class RecentlyViewedTest {
         assertEquals(listOf(3L, 1L), recent.ids())
     }
 
-    @Test
-    fun `clear empties it`() {
-        val recent = RecentlyViewed()
-        listOf(1L, 2L).forEach(recent::record)
-        recent.clear()
-        assertTrue(recent.ids().isEmpty())
-    }
 }

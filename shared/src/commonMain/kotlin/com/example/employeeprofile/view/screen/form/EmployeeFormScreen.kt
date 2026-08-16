@@ -7,19 +7,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -43,9 +37,9 @@ import com.example.employeeprofile.view.component.LabeledSwitch
 import com.example.employeeprofile.view.component.LabeledTextField
 import com.example.employeeprofile.view.component.ProfileImageField
 import com.example.employeeprofile.view.component.RadioGroup
+import com.example.employeeprofile.view.component.ScreenTopBar
 import com.example.employeeprofile.view.component.ResumeField
 import com.example.employeeprofile.view.theme.Spacing
-import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 
 /** The address field shows four lines at once, per the spec. */
@@ -86,17 +80,9 @@ fun EmployeeFormScreen(
         containerColor = MaterialTheme.colorScheme.background,
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
-            TopAppBar(
-                title = { Text(if (isNew) "New employee" else "Edit employee") },
-                navigationIcon = {
-                    IconButton(onClick = onDone) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background,
-                    titleContentColor = MaterialTheme.colorScheme.onSurface
-                )
+            ScreenTopBar(
+                title = if (isNew) "New employee" else "Edit employee",
+                onBack = onDone
             )
         }
     ) { padding ->

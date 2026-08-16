@@ -4,10 +4,8 @@ import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -16,7 +14,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -24,12 +21,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.employeeprofile.data.model.Employee
 import com.example.employeeprofile.view.component.Avatar
 import com.example.employeeprofile.view.component.Pill
+import com.example.employeeprofile.view.component.StatusIndicator
 import com.example.employeeprofile.view.formatDate
 import com.example.employeeprofile.view.highlight
 import com.example.employeeprofile.view.formatSalary
@@ -39,7 +36,6 @@ private val AVATAR_SIZE = 48.dp
 
 /** Ties the list avatar to the detail avatar for the same employee. */
 fun avatarSharedKey(employeeId: Long): String = "avatar-$employeeId"
-private val STATUS_DOT_SIZE = 8.dp
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalSharedTransitionApi::class)
 @Composable
@@ -117,26 +113,3 @@ fun EmployeeCard(
     }
 }
 
-/** A dot and a word — green when the employee is active, muted when not. */
-@Composable
-private fun StatusIndicator(isActive: Boolean) {
-    val color = if (isActive) {
-        MaterialTheme.colorScheme.tertiary
-    } else {
-        MaterialTheme.colorScheme.onSurfaceVariant
-    }
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Box(
-            modifier = Modifier
-                .size(STATUS_DOT_SIZE)
-                .clip(CircleShape)
-                .background(color)
-        )
-        Spacer(Modifier.width(Spacing.xSmall))
-        Text(
-            text = if (isActive) "Active" else "Inactive",
-            style = MaterialTheme.typography.labelMedium,
-            color = color
-        )
-    }
-}

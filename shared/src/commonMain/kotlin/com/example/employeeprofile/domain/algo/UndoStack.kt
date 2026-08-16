@@ -28,6 +28,4 @@ class UndoStack<T>(private val maxDepth: Int = DEFAULT_UNDO_DEPTH) {
 
     /** The most recently pushed item, or null when there's nothing left to undo. O(1). */
     fun pop(): T? = items.removeLastOrNull()
-
-    fun clear() = items.clear()
 }

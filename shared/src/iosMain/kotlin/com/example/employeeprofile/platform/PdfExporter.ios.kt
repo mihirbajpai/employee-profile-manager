@@ -17,9 +17,6 @@ import platform.UIKit.UIGraphicsBeginPDFPage
 import platform.UIKit.UIGraphicsEndPDFContext
 import platform.UIKit.drawAtPoint
 
-/** Generated documents live here, separate from picked media. */
-private const val EXPORT_DIRECTORY = "exports"
-
 @OptIn(ExperimentalForeignApi::class)
 @Composable
 actual fun rememberPdfExporter(onResult: (String) -> Unit): PdfExporter =

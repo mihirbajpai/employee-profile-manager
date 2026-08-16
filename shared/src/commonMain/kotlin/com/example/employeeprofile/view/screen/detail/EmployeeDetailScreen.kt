@@ -12,17 +12,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.background
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -33,14 +30,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -50,14 +44,16 @@ import com.example.employeeprofile.view.component.Avatar
 import com.example.employeeprofile.view.screen.list.avatarSharedKey
 import com.example.employeeprofile.view.component.EmptyState
 import com.example.employeeprofile.view.component.Pill
+import com.example.employeeprofile.view.component.ScreenTopBar
+import com.example.employeeprofile.view.component.StatusIndicator
 import com.example.employeeprofile.view.component.ResumeField
 import com.example.employeeprofile.view.formatDate
 import com.example.employeeprofile.view.formatSalary
+import com.example.employeeprofile.view.statusLabel
 import com.example.employeeprofile.view.theme.Spacing
 import org.koin.compose.viewmodel.koinViewModel
 
 private val HEADER_AVATAR_SIZE = 96.dp
-private val STATUS_DOT_SIZE = 8.dp
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
@@ -75,25 +71,13 @@ fun EmployeeDetailScreen(
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            TopAppBar(
-                title = { Text("Employee") },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+            ScreenTopBar(title = "Employee", onBack = onBack) {
+                if (state is DataState.Success) {
+                    IconButton(onClick = { onEdit(employeeId) }) {
+                        Icon(Icons.Default.Edit, contentDescription = "Edit")
                     }
-                },
-                actions = {
-                    if (state is DataState.Success) {
-                        IconButton(onClick = { onEdit(employeeId) }) {
-                            Icon(Icons.Default.Edit, contentDescription = "Edit")
-                        }
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background,
-                    titleContentColor = MaterialTheme.colorScheme.onSurface
-                )
-            )
+                }
+            }
         }
     ) { padding ->
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {
@@ -144,7 +128,7 @@ private fun EmployeeDetail(
             DetailRow(label = "Employment type", value = employee.employmentType.label)
             DetailRow(label = "Joining date", value = formatDate(employee.joiningDate))
             DetailRow(label = "Salary", value = formatSalary(employee.salary))
-            DetailRow(label = "Status", value = if (employee.isActive) "Active" else "Inactive")
+            DetailRow(label = "Status", value = statusLabel(employee.isActive))
         }
 
         Section(title = "Personal") {
@@ -203,33 +187,11 @@ private fun Header(
                 container = MaterialTheme.colorScheme.secondaryContainer,
                 content = MaterialTheme.colorScheme.onSecondaryContainer
             )
-            StatusChip(isActive = employee.isActive)
+            StatusIndicator(isActive = employee.isActive)
         }
     }
 }
 
-@Composable
-private fun StatusChip(isActive: Boolean) {
-    val color = if (isActive) {
-        MaterialTheme.colorScheme.tertiary
-    } else {
-        MaterialTheme.colorScheme.onSurfaceVariant
-    }
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Box(
-            modifier = Modifier
-                .size(STATUS_DOT_SIZE)
-                .clip(CircleShape)
-                .background(color)
-        )
-        Spacer(Modifier.width(Spacing.xSmall))
-        Text(
-            text = if (isActive) "Active" else "Inactive",
-            style = MaterialTheme.typography.labelMedium,
-            color = color
-        )
-    }
-}
 
 @Composable
 private fun Section(title: String, content: @Composable () -> Unit) {

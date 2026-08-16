@@ -1,19 +1,17 @@
 package com.example.employeeprofile.view.screen.detail
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.example.employeeprofile.data.model.Employee
 import com.example.employeeprofile.data.repository.EmployeeRepository
 import com.example.employeeprofile.domain.algo.RecentlyViewed
 import com.example.employeeprofile.view.DataState
+import com.example.employeeprofile.view.asScreenState
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 
 /**
  * Watches one employee rather than reading it once, so an edit made on the form is reflected
@@ -38,18 +36,10 @@ class EmployeeDetailViewModel(
                 DataState.Success(found)
             }
         }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(SUBSCRIPTION_TIMEOUT_MS),
-            initialValue = DataState.Loading()
-        )
+        .asScreenState(this, DataState.Loading())
 
     fun load(id: Long) {
         employeeId.value = id
         recentlyViewed.record(id)
-    }
-
-    private companion object {
-        const val SUBSCRIPTION_TIMEOUT_MS = 5_000L
     }
 }

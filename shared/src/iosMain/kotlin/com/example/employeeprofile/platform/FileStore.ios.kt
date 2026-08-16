@@ -10,8 +10,11 @@ import platform.Foundation.writeToURL
 import platform.UIKit.UIApplication
 import platform.UIKit.UIViewController
 
-/** Where copies of picked files live, inside the app's Documents directory. */
-private const val MEDIA_DIRECTORY = "media"
+/** Copies of files the user picked. */
+internal const val MEDIA_DIRECTORY = "media"
+
+/** Documents the app generates, kept apart from what the user brought in. */
+internal const val EXPORT_DIRECTORY = "exports"
 
 /**
  * Writes picked bytes into the app's own storage and describes the result.

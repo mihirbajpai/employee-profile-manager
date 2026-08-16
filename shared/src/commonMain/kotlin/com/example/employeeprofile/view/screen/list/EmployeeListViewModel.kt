@@ -9,16 +9,15 @@ import com.example.employeeprofile.data.repository.EmployeeRepository
 import com.example.employeeprofile.domain.algo.NameTrie
 import com.example.employeeprofile.domain.algo.RecentlyViewed
 import com.example.employeeprofile.domain.algo.UndoStack
+import com.example.employeeprofile.view.asScreenState
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -74,11 +73,7 @@ class EmployeeListViewModel(
      * This is what an export writes out — the page boundary is a drawing concern, and silently
      * exporting only the rows that happen to be on screen would be a lie.
      */
-    val matchingAll: StateFlow<List<Employee>> = matching.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(SUBSCRIPTION_TIMEOUT_MS),
-        initialValue = emptyList()
-    )
+    val matchingAll: StateFlow<List<Employee>> = matching.asScreenState(this, emptyList())
 
     /**
      * A page at a time, taken after filtering and sorting rather than before.
@@ -90,20 +85,12 @@ class EmployeeListViewModel(
      */
     val employees: StateFlow<List<Employee>> = combine(matchingAll, _visibleCount) { list, count ->
         list.take(count)
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(SUBSCRIPTION_TIMEOUT_MS),
-        initialValue = emptyList()
-    )
+    }.asScreenState(this, emptyList())
 
     /** Whether anything is left below what's drawn — drives the spinner at the list's foot. */
     val hasMore: StateFlow<Boolean> = combine(matchingAll, _visibleCount) { list, count ->
         list.size > count
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(SUBSCRIPTION_TIMEOUT_MS),
-        initialValue = false
-    )
+    }.asScreenState(this, false)
 
     /**
      * Names starting with what's been typed, from the trie. Empty once the query matches
@@ -120,22 +107,14 @@ class EmployeeListViewModel(
         } else {
             nameTrie.suggest(query).filterNot { it.equals(query.trim(), ignoreCase = true) }
         }
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(SUBSCRIPTION_TIMEOUT_MS),
-        initialValue = emptyList()
-    )
+    }.asScreenState(this, emptyList())
 
     /** The employees opened most recently, newest first, minus anyone since deleted. */
     val recent: StateFlow<List<Employee>> = repository.observeAll().map { all ->
         recentlyViewed.retainAll(all.map { it.id }.toSet())
         val byId = all.associateBy { it.id }
         recentlyViewed.ids().mapNotNull(byId::get)
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(SUBSCRIPTION_TIMEOUT_MS),
-        initialValue = emptyList()
-    )
+    }.asScreenState(this, emptyList())
 
     /** Called when the list nears its end. */
     fun onLoadMore() {
@@ -231,8 +210,5 @@ class EmployeeListViewModel(
 
         /** Long enough to skip the letters someone types on the way to a word. */
         val SEARCH_DEBOUNCE = 300.milliseconds
-
-        /** Keeps the database subscription alive across a configuration change. */
-        const val SUBSCRIPTION_TIMEOUT_MS = 5_000L
     }
 }

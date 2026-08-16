@@ -46,9 +46,6 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -69,6 +66,7 @@ import com.example.employeeprofile.platform.rememberPdfExporter
 import com.example.employeeprofile.view.component.Avatar
 import com.example.employeeprofile.view.component.ConfirmDialog
 import com.example.employeeprofile.view.component.EmptyState
+import com.example.employeeprofile.view.component.ScreenTopBar
 import com.example.employeeprofile.view.component.SearchField
 import com.example.employeeprofile.view.theme.Spacing
 import kotlinx.coroutines.launch
@@ -182,9 +180,7 @@ fun EmployeeListScreen(
         containerColor = MaterialTheme.colorScheme.background,
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
-            TopAppBar(
-                title = { Text("Employees") },
-                actions = {
+            ScreenTopBar(title = "Employees") {
                     ThemeAction(preference = themePreference, onClick = onCycleTheme)
                     FilterAction(
                         selectionCount = filters.selectionCount,
@@ -195,12 +191,7 @@ fun EmployeeListScreen(
                         onViewSummary = onViewSummary,
                         onExportPdf = { pdfExporter.export(matchingAll) }
                     )
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background,
-                    titleContentColor = MaterialTheme.colorScheme.onSurface
-                )
-            )
+            }
         },
         floatingActionButton = {
             ExtendedFloatingActionButton(

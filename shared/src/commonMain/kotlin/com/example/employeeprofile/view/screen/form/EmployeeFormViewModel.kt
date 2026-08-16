@@ -11,13 +11,12 @@ import com.example.employeeprofile.data.model.Skill
 import com.example.employeeprofile.platform.PickedFile
 import com.example.employeeprofile.data.repository.EmployeeRepository
 import com.example.employeeprofile.domain.algo.DuplicateField
+import com.example.employeeprofile.view.asScreenState
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 /** Owns the form's fields, which of them have been visited, and what's wrong with them. */
@@ -49,16 +48,12 @@ class EmployeeFormViewModel(private val repository: EmployeeRepository) : ViewMo
     val errors: StateFlow<Map<FormField, String>> =
         combine(_state, _touched, _duplicateErrors) { state, touched, duplicates ->
             EmployeeFormValidator.validate(state).filterKeys { it in touched } + duplicates
-        }.stateIn(
-            viewModelScope,
-            SharingStarted.WhileSubscribed(SUBSCRIPTION_TIMEOUT_MS),
-            emptyMap()
-        )
+        }.asScreenState(this, emptyMap())
 
     /** Gates the Submit button, and looks at every field regardless of what's been touched. */
     val isValid: StateFlow<Boolean> = _state
         .map { EmployeeFormValidator.validate(it).isEmpty() }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(SUBSCRIPTION_TIMEOUT_MS), false)
+        .asScreenState(this, false)
 
     fun onFullNameChange(value: String) {
         clearDuplicateError(FormField.FULL_NAME)
@@ -211,7 +206,5 @@ class EmployeeFormViewModel(private val repository: EmployeeRepository) : ViewMo
     private companion object {
         /** Kept as typed, then stripped when the number is normalised for storage. */
         val PHONE_SEPARATORS = setOf('+', '-', ' ', '(', ')')
-
-        const val SUBSCRIPTION_TIMEOUT_MS = 5_000L
     }
 }
