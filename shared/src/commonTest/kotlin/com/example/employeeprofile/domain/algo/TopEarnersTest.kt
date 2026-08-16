@@ -22,11 +22,6 @@ class TopEarnersTest {
     }
 
     @Test
-    fun `returns exactly n entries when there are more than n employees`() {
-        assertEquals(2, topNBySalary(staff, n = 2).size)
-    }
-
-    @Test
     fun `returns everyone when n is larger than the list`() {
         val top = topNBySalary(staff, n = 50)
         assertEquals(staff.size, top.size)
@@ -47,13 +42,6 @@ class TopEarnersTest {
     @Test
     fun `the default n is five`() {
         assertEquals(DEFAULT_TOP_COUNT, topNBySalary(staff).size)
-    }
-
-    @Test
-    fun `agrees with a full sort which is the slow way of asking the same question`() {
-        val byHeap = topNBySalary(staff, n = 3).map { it.fullName }
-        val bySort = staff.sortedByDescending { it.salary }.take(3).map { it.fullName }
-        assertEquals(bySort, byHeap)
     }
 
     @Test

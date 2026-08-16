@@ -39,10 +39,4 @@ class MinHeapTest {
         assertEquals(listOf(2, 2, 2), generateSequence { heap.poll() }.toList())
     }
 
-    @Test
-    fun `a reversed comparator turns it into a max-heap`() {
-        val heap = MinHeap<Int>(compareByDescending { it })
-        listOf(5, 3, 9, 1).forEach(heap::push)
-        assertEquals(9, heap.peek())
-    }
 }

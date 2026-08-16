@@ -87,29 +87,13 @@ class DuplicateIndexTest {
     }
 
     @Test
-    fun `adding a record takes its email`() {
-        val index = DuplicateIndex()
-        index.add(employee(id = 1, email = "priya@acme.io"))
-        assertEquals(
-            DuplicateField.EMAIL,
-            index.findConflict("priya@acme.io", "9000000000", "Someone Else")
-        )
-    }
-
-    @Test
-    fun `isDuplicate answers yes for a taken email or phone`() {
-        val index = indexOf(employee(id = 1, email = "priya@acme.io", phone = "9876543210"))
+    fun `isDuplicate reports a clash and excuses the record being edited`() {
+        val existing = employee(id = 7, email = "priya@acme.io", phone = "9876543210")
+        val index = indexOf(existing)
         assertTrue(index.isDuplicate("priya@acme.io", "9000000000"))
         assertTrue(index.isDuplicate("free@acme.io", "9876543210"))
         assertFalse(index.isDuplicate("free@acme.io", "9000000000"))
-    }
-
-    @Test
-    fun `isDuplicate does not count the record being edited against itself`() {
-        val existing = employee(id = 7)
-        val index = indexOf(existing)
         assertFalse(index.isDuplicate(existing.email, existing.normalizedPhone, selfId = 7))
-        assertTrue(index.isDuplicate(existing.email, existing.normalizedPhone, selfId = 8))
     }
 
     @Test

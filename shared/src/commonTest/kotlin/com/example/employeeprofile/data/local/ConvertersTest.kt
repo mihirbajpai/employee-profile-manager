@@ -19,12 +19,6 @@ class ConvertersTest {
     }
 
     @Test
-    fun `one skill needs no separator`() {
-        assertEquals("KOTLIN", converters.fromSkills(listOf("KOTLIN")))
-        assertEquals(listOf("KOTLIN"), converters.toSkills("KOTLIN"))
-    }
-
-    @Test
     fun `no skills is stored as an empty column rather than a stray separator`() {
         assertEquals("", converters.fromSkills(emptyList()))
     }

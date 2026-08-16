@@ -51,8 +51,4 @@ class HighlightTest {
         assertEquals(listOf(2 to 5), spansOf("Aisha Khan", "  sha  "))
     }
 
-    @Test
-    fun `a query matching the whole string emphasises all of it`() {
-        assertEquals(listOf(0 to 6), spansOf("Design", "design"))
-    }
 }

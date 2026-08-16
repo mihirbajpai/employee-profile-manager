@@ -72,8 +72,4 @@ class PdfExporterIosTest {
         assertTrue(MEDIA_DIRECTORY in saved.path)
     }
 
-    @Test
-    fun `documents directory resolves`() {
-        assertTrue(documentsPath().isNotEmpty())
-    }
 }

@@ -20,19 +20,11 @@ class DepartmentSummaryTest {
         summariseByDepartment(roster).firstOrNull { it.department == department }
 
     @Test
-    fun `headcount counts everyone in the department`() {
-        assertEquals(3, summaryFor(Department.ENGINEERING)?.headcount)
-        assertEquals(1, summaryFor(Department.DESIGN)?.headcount)
-    }
-
-    @Test
-    fun `active count excludes the inactive`() {
-        assertEquals(2, summaryFor(Department.ENGINEERING)?.activeCount)
-    }
-
-    @Test
-    fun `totals and averages are over everyone not just the active`() {
+    fun `a department is summarised across its people`() {
         val engineering = summaryFor(Department.ENGINEERING)
+        assertEquals(3, engineering?.headcount)
+        // The inactive engineer counts towards pay but not towards the active tally.
+        assertEquals(2, engineering?.activeCount)
         assertEquals(6_000_000.0, engineering?.totalSalary)
         assertEquals(2_000_000.0, engineering?.averageSalary)
     }

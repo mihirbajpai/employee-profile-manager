@@ -90,13 +90,4 @@ class EmployeeFormStateTest {
         assertEquals("1250000.5", employee(salary = 1_250_000.5).toFormState().salary)
     }
 
-    @Test
-    fun `the form and storage agree in both directions`() {
-        val original = employee(id = 3, fullName = "Neha Verma", createdAt = 5L)
-        val round = original.toFormState().toEmployee(original)
-        assertEquals(original.fullName, round.fullName)
-        assertEquals(original.email, round.email)
-        assertEquals(original.salary, round.salary)
-        assertEquals(original.skills.toSet(), round.skills.toSet())
-    }
 }

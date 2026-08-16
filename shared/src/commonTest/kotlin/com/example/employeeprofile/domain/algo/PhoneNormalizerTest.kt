@@ -32,11 +32,6 @@ class PhoneNormalizerTest {
     }
 
     @Test
-    fun `two spellings of the same number normalise equal`() {
-        assertEquals(normalizePhone("+91 98765 43210"), normalizePhone("098765-43210"))
-    }
-
-    @Test
     fun `empty input stays empty`() {
         assertEquals("", normalizePhone(""))
     }

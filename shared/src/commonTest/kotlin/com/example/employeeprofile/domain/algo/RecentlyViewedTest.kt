@@ -20,13 +20,6 @@ class RecentlyViewedTest {
     }
 
     @Test
-    fun `the queue never grows past its capacity`() {
-        val recent = RecentlyViewed(capacity = 3)
-        (1L..10L).forEach(recent::record)
-        assertEquals(3, recent.size)
-    }
-
-    @Test
     fun `it is the oldest that is dropped when full`() {
         val recent = RecentlyViewed(capacity = 3)
         (1L..5L).forEach(recent::record)

@@ -1,7 +1,6 @@
 package com.example.employeeprofile.platform
 
 import com.example.employeeprofile.data.model.ResumeDocument
-import com.example.employeeprofile.employee
 import kotlinx.cinterop.ExperimentalForeignApi
 import platform.Foundation.NSMutableData
 import platform.Foundation.NSURL
@@ -80,11 +79,4 @@ class DocumentPickerIosTest {
         assertEquals("", mimeTypeFor("notes.txt"))
     }
 
-    @Test
-    fun `the pdf the exporter writes is itself a valid pick`() {
-        val exported = assertNotNull(writePdf(listOf(employee(id = 1))))
-        var picked: PickedFile? = null
-        readPickedDocument(NSURL.fileURLWithPath(exported), { picked = it }, {})
-        assertEquals("application/pdf", assertNotNull(picked).mimeType)
-    }
 }

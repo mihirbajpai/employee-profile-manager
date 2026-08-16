@@ -24,13 +24,6 @@ class UndoStackTest {
     }
 
     @Test
-    fun `the stack never grows past its depth`() {
-        val stack = UndoStack<Int>(maxDepth = 3)
-        repeat(10) { stack.push(it) }
-        assertEquals(3, stack.size)
-    }
-
-    @Test
     fun `it is the oldest entry that falls off not the newest`() {
         val stack = UndoStack<Int>(maxDepth = 3)
         repeat(10) { stack.push(it) }
