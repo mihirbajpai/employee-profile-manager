@@ -94,6 +94,9 @@ class EmployeeFormViewModel(private val repository: EmployeeRepository) : ViewMo
 
     fun onActiveChange(value: Boolean) = updateState { copy(isActive = value) }
 
+    /** The picker has already copied the file into app storage; only the path is stored. */
+    fun onProfileImagePicked(path: String) = updateState { copy(profileImagePath = path) }
+
     fun onJoiningDateChange(value: Long) {
         updateState { copy(joiningDate = value) }
         onFieldTouched(FormField.JOINING_DATE)

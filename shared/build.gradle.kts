@@ -48,11 +48,14 @@ kotlin {
             implementation(libs.sqlite.bundled)
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.kotlinx.datetime)
+            implementation(libs.coil.compose)
         }
 
         androidMain.dependencies {
             // api, so the Application class can reach androidContext() when starting Koin
             api(libs.koin.android)
+            // The picker registers an activity result launcher during composition.
+            implementation(libs.androidx.activity.compose)
         }
 
         commonTest.dependencies {

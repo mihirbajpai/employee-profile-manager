@@ -15,12 +15,18 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -29,13 +35,16 @@ import com.example.employeeprofile.data.model.Employee
 import com.example.employeeprofile.data.model.EmploymentType
 import com.example.employeeprofile.data.model.Gender
 import com.example.employeeprofile.data.model.Skill
+import com.example.employeeprofile.platform.rememberMediaPicker
 import com.example.employeeprofile.view.component.CheckboxChipGroup
 import com.example.employeeprofile.view.component.DateField
 import com.example.employeeprofile.view.component.LabeledDropdown
 import com.example.employeeprofile.view.component.LabeledSwitch
 import com.example.employeeprofile.view.component.LabeledTextField
+import com.example.employeeprofile.view.component.ProfileImageField
 import com.example.employeeprofile.view.component.RadioGroup
 import com.example.employeeprofile.view.theme.Spacing
+import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 
 /** The address field shows four lines at once, per the spec. */
@@ -53,11 +62,21 @@ fun EmployeeFormScreen(
     val errors by vm.errors.collectAsStateWithLifecycle()
     val isValid by vm.isValid.collectAsStateWithLifecycle()
     val isNew = employeeId == Employee.NO_ID
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(employeeId) { vm.load(employeeId) }
 
+    var showSourceSheet by remember { mutableStateOf(false) }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val picker = rememberMediaPicker(
+        onImagePicked = { vm.onProfileImagePicked(it.path) },
+        onDocumentPicked = {},
+        onError = { message -> scope.launch { snackbarHostState.showSnackbar(message) } }
+    )
+
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text(if (isNew) "New employee" else "Edit employee") },
@@ -81,6 +100,18 @@ fun EmployeeFormScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(Spacing.small)
         ) {
+            ProfileImageField(
+                fullName = state.fullName,
+                imagePath = state.profileImagePath,
+                showSourceSheet = showSourceSheet,
+                onOpenSourceSheet = { showSourceSheet = true },
+                onDismissSourceSheet = { showSourceSheet = false },
+                onSourceChosen = { source ->
+                    showSourceSheet = false
+                    picker.pickImage(source)
+                },
+                modifier = Modifier.padding(vertical = Spacing.medium)
+            )
             LabeledTextField(
                 label = "Full name",
                 value = state.fullName,
