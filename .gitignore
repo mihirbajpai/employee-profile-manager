@@ -1,0 +1,19 @@
+*.iml
+.gradle
+/local.properties
+/.idea/*
+!/.idea/runConfigurations
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+
+# Kotlin/Native and Xcode
+**/build/
+xcuserdata/
+*.xcuserstate
+/iosApp/Pods/
+/iosApp/*.xcworkspace
+/kotlin-js-store
