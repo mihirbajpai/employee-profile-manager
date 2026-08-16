@@ -49,6 +49,8 @@ fun EmployeeFormScreen(
     vm: EmployeeFormViewModel = koinViewModel()
 ) {
     val state by vm.state.collectAsStateWithLifecycle()
+    val errors by vm.errors.collectAsStateWithLifecycle()
+    val isValid by vm.isValid.collectAsStateWithLifecycle()
     val isNew = employeeId == Employee.NO_ID
 
     Scaffold(
@@ -79,54 +81,66 @@ fun EmployeeFormScreen(
             LabeledTextField(
                 label = "Full name",
                 value = state.fullName,
-                onValueChange = vm::onFullNameChange
+                onValueChange = vm::onFullNameChange,
+                error = errors[FormField.FULL_NAME],
+                onFocusLost = { vm.onFieldTouched(FormField.FULL_NAME) }
             )
             LabeledTextField(
                 label = "Email",
                 value = state.email,
                 onValueChange = vm::onEmailChange,
-                keyboardType = KeyboardType.Email
+                error = errors[FormField.EMAIL],
+                keyboardType = KeyboardType.Email,
+                onFocusLost = { vm.onFieldTouched(FormField.EMAIL) }
             )
             LabeledTextField(
                 label = "Phone number",
                 value = state.phone,
                 onValueChange = vm::onPhoneChange,
-                keyboardType = KeyboardType.Phone
+                error = errors[FormField.PHONE],
+                keyboardType = KeyboardType.Phone,
+                onFocusLost = { vm.onFieldTouched(FormField.PHONE) }
             )
             LabeledTextField(
                 label = "Address",
                 value = state.address,
                 onValueChange = vm::onAddressChange,
+                error = errors[FormField.ADDRESS],
                 singleLine = false,
-                minLines = ADDRESS_LINES
+                minLines = ADDRESS_LINES,
+                onFocusLost = { vm.onFieldTouched(FormField.ADDRESS) }
             )
             RadioGroup(
                 label = "Gender",
                 options = Gender.entries,
                 selected = state.gender,
                 optionLabel = { it.label },
-                onSelect = vm::onGenderChange
+                onSelect = vm::onGenderChange,
+                error = errors[FormField.GENDER]
             )
             LabeledDropdown(
                 label = "Department",
                 options = Department.entries,
                 selected = state.department,
                 optionLabel = { it.label },
-                onSelect = vm::onDepartmentChange
+                onSelect = vm::onDepartmentChange,
+                error = errors[FormField.DEPARTMENT]
             )
             CheckboxChipGroup(
                 label = "Skills",
                 options = Skill.entries,
                 selected = state.skills,
                 optionLabel = { it.label },
-                onToggle = vm::onSkillToggle
+                onToggle = vm::onSkillToggle,
+                error = errors[FormField.SKILLS]
             )
             LabeledDropdown(
                 label = "Employment type",
                 options = EmploymentType.entries,
                 selected = state.employmentType,
                 optionLabel = { it.label },
-                onSelect = vm::onEmploymentTypeChange
+                onSelect = vm::onEmploymentTypeChange,
+                error = errors[FormField.EMPLOYMENT_TYPE]
             )
             LabeledSwitch(
                 label = "Active",
@@ -136,17 +150,22 @@ fun EmployeeFormScreen(
             DateField(
                 label = "Joining date",
                 value = state.joiningDate,
-                onValueChange = vm::onJoiningDateChange
+                onValueChange = vm::onJoiningDateChange,
+                error = errors[FormField.JOINING_DATE],
+                onDismissed = { vm.onFieldTouched(FormField.JOINING_DATE) }
             )
             LabeledTextField(
                 label = "Salary",
                 value = state.salary,
                 onValueChange = vm::onSalaryChange,
+                error = errors[FormField.SALARY],
                 keyboardType = KeyboardType.Number,
-                prefix = "₹"
+                prefix = "₹",
+                onFocusLost = { vm.onFieldTouched(FormField.SALARY) }
             )
             Button(
                 onClick = onDone,
+                enabled = isValid,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = Spacing.medium)
