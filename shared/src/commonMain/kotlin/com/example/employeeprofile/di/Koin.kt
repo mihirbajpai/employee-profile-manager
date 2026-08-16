@@ -20,7 +20,7 @@ val sharedModule = module {
     single { EmployeeRepository(get()) }
 
     viewModel { EmployeeListViewModel(get()) }
-    viewModel { EmployeeFormViewModel() }
+    viewModel { EmployeeFormViewModel(get()) }
 }
 
 /**

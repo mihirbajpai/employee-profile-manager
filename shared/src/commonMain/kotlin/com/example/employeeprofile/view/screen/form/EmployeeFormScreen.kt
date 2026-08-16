@@ -19,6 +19,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
@@ -52,6 +53,8 @@ fun EmployeeFormScreen(
     val errors by vm.errors.collectAsStateWithLifecycle()
     val isValid by vm.isValid.collectAsStateWithLifecycle()
     val isNew = employeeId == Employee.NO_ID
+
+    LaunchedEffect(employeeId) { vm.load(employeeId) }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -164,7 +167,7 @@ fun EmployeeFormScreen(
                 onFocusLost = { vm.onFieldTouched(FormField.SALARY) }
             )
             Button(
-                onClick = onDone,
+                onClick = { vm.save(onDone) },
                 enabled = isValid,
                 modifier = Modifier
                     .fillMaxWidth()
