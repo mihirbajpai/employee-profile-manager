@@ -2,7 +2,9 @@ package com.example.employeeprofile.view.screen.list
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.employeeprofile.data.model.Department
 import com.example.employeeprofile.data.model.Employee
+import com.example.employeeprofile.data.model.EmploymentType
 import com.example.employeeprofile.data.repository.EmployeeRepository
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,11 +26,18 @@ class EmployeeListViewModel(repository: EmployeeRepository) : ViewModel() {
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
+    private val _filters = MutableStateFlow(EmployeeFilters())
+    val filters: StateFlow<EmployeeFilters> = _filters.asStateFlow()
+
+    /** Search and filters are folded together here so the screen never re-derives anything. */
     val employees: StateFlow<List<Employee>> = combine(
         repository.observeAll(),
         // Debouncing an empty query would delay the first frame for no reason.
-        _searchQuery.debounce { if (it.isEmpty()) 0.milliseconds else SEARCH_DEBOUNCE }
-    ) { all, query -> all.filter { it.matches(query) } }
+        _searchQuery.debounce { if (it.isEmpty()) 0.milliseconds else SEARCH_DEBOUNCE },
+        _filters
+    ) { all, query, filters ->
+        all.filter { it.matches(query) && filters.matches(it) }
+    }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(SUBSCRIPTION_TIMEOUT_MS),
@@ -38,6 +47,32 @@ class EmployeeListViewModel(repository: EmployeeRepository) : ViewModel() {
     fun onSearchQueryChange(query: String) {
         _searchQuery.value = query
     }
+
+    fun onToggleDepartment(department: Department) {
+        _filters.value = _filters.value.let {
+            it.copy(departments = it.departments.toggle(department))
+        }
+    }
+
+    fun onToggleEmploymentType(type: EmploymentType) {
+        _filters.value = _filters.value.let {
+            it.copy(employmentTypes = it.employmentTypes.toggle(type))
+        }
+    }
+
+    /** null clears the status restriction; tapping the selected option clears it too. */
+    fun onStatusChange(isActive: Boolean?) {
+        _filters.value = _filters.value.copy(
+            isActive = if (_filters.value.isActive == isActive) null else isActive
+        )
+    }
+
+    fun onClearFilters() {
+        _filters.value = EmployeeFilters()
+    }
+
+    private fun <T> Set<T>.toggle(value: T): Set<T> =
+        if (value in this) this - value else this + value
 
     /** Name, email and department are searched together, as one case-insensitive contains. */
     private fun Employee.matches(query: String): Boolean {

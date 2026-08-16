@@ -30,6 +30,7 @@ kotlin {
             implementation(compose.material3)
             implementation(compose.ui)
             implementation(compose.components.resources)
+            implementation(compose.materialIconsExtended)
 
             // Dependency injection — no manual instantiation anywhere in the app
             api(libs.koin.core)
