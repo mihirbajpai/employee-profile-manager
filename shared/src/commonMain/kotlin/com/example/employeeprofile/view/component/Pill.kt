@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.example.employeeprofile.view.highlight
 import com.example.employeeprofile.view.theme.Spacing
 
 /**
@@ -23,7 +24,8 @@ fun Pill(
     text: String,
     modifier: Modifier = Modifier,
     container: Color? = null,
-    content: Color = MaterialTheme.colorScheme.onSurfaceVariant
+    content: Color = MaterialTheme.colorScheme.onSurfaceVariant,
+    highlightQuery: String = ""
 ) {
     val shaped = modifier
         .clip(CircleShape)
@@ -37,7 +39,7 @@ fun Pill(
         }
         .padding(horizontal = Spacing.small, vertical = Spacing.xSmall)
     Text(
-        text = text,
+        text = highlight(text, highlightQuery, MaterialTheme.colorScheme.primary),
         modifier = shaped,
         style = MaterialTheme.typography.labelMedium,
         color = content

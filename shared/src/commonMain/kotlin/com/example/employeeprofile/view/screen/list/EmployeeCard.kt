@@ -31,6 +31,7 @@ import com.example.employeeprofile.data.model.Employee
 import com.example.employeeprofile.view.component.Avatar
 import com.example.employeeprofile.view.component.Pill
 import com.example.employeeprofile.view.formatDate
+import com.example.employeeprofile.view.highlight
 import com.example.employeeprofile.view.formatSalary
 import com.example.employeeprofile.view.theme.Spacing
 
@@ -48,7 +49,8 @@ fun EmployeeCard(
     animatedVisibilityScope: AnimatedVisibilityScope,
     onClick: () -> Unit,
     onLongClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    searchQuery: String = ""
 ) {
     Surface(
         modifier = modifier.fillMaxWidth(),
@@ -79,7 +81,12 @@ fun EmployeeCard(
             Column(modifier = Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = employee.fullName,
+                        // Shows which part of the name the search actually hit.
+                        text = highlight(
+                            text = employee.fullName,
+                            query = searchQuery,
+                            color = MaterialTheme.colorScheme.primary
+                        ),
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onSurface,
                         maxLines = 1,
@@ -93,6 +100,7 @@ fun EmployeeCard(
                 Row(horizontalArrangement = Arrangement.spacedBy(Spacing.xSmall)) {
                     Pill(
                         text = employee.department.label,
+                        highlightQuery = searchQuery,
                         container = MaterialTheme.colorScheme.secondaryContainer,
                         content = MaterialTheme.colorScheme.onSecondaryContainer
                     )
