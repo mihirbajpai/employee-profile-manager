@@ -14,6 +14,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.savedstate.read
+import com.example.employeeprofile.data.model.Employee
 import com.example.employeeprofile.view.screen.detail.EmployeeDetailScreen
 import com.example.employeeprofile.view.screen.form.EmployeeFormScreen
 import com.example.employeeprofile.view.screen.list.EmployeeListScreen
@@ -40,7 +41,7 @@ fun EmployeeApp() {
             composable(Screen.LIST.route) {
                 EmployeeListScreen(
                     onAddEmployee = {
-                        navController.navigate(Screen.FORM.withArgs(NEW_EMPLOYEE_ID))
+                        navController.navigate(Screen.FORM.withArgs(Employee.NO_ID))
                     },
                     onEditEmployee = { navController.navigate(Screen.FORM.withArgs(it)) },
                     onViewEmployee = { navController.navigate(Screen.DETAIL.withArgs(it)) },
@@ -82,13 +83,10 @@ enum class Screen(val route: String) {
     }
 }
 
-/** The id the form treats as "create a new employee" instead of editing an existing one. */
-const val NEW_EMPLOYEE_ID = 0L
-
 private const val ARG_EMPLOYEE_ID = "employee_id"
 
 private val employeeIdArgument =
     listOf(navArgument(ARG_EMPLOYEE_ID) { type = NavType.LongType })
 
 private fun androidx.navigation.NavBackStackEntry.employeeId(): Long =
-    arguments?.read { getLong(ARG_EMPLOYEE_ID) } ?: NEW_EMPLOYEE_ID
+    arguments?.read { getLong(ARG_EMPLOYEE_ID) } ?: Employee.NO_ID

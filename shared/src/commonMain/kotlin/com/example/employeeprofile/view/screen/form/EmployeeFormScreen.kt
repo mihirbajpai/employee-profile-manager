@@ -10,10 +10,10 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.example.employeeprofile.view.NEW_EMPLOYEE_ID
+import com.example.employeeprofile.data.model.Employee
 import com.example.employeeprofile.view.theme.Spacing
 
-/** One form for both create and edit — [employeeId] is [NEW_EMPLOYEE_ID] when creating. */
+/** One form for both create and edit — [employeeId] is [Employee.NO_ID] when creating. */
 @Composable
 fun EmployeeFormScreen(employeeId: Long, onDone: () -> Unit) {
     Column(
@@ -24,7 +24,7 @@ fun EmployeeFormScreen(employeeId: Long, onDone: () -> Unit) {
         verticalArrangement = Arrangement.spacedBy(Spacing.small, Alignment.CenterVertically)
     ) {
         Text(
-            text = if (employeeId == NEW_EMPLOYEE_ID) "New employee" else "Edit employee",
+            text = if (employeeId == Employee.NO_ID) "New employee" else "Edit employee",
             style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.onSurface
         )
