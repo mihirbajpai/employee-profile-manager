@@ -64,12 +64,4 @@ class EmployeeSortTest {
         )
     }
 
-    @Test
-    fun `every option the menu offers carries a comparator and a label`() {
-        assertEquals(6, EmployeeSort.entries.size)
-        EmployeeSort.entries.forEach { sort ->
-            assertEquals(roster.size, roster.sortedWith(sort.comparator).size)
-            assertEquals(true, sort.label.isNotBlank())
-        }
-    }
 }

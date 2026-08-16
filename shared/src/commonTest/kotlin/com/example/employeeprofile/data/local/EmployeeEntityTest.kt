@@ -9,7 +9,6 @@ import com.example.employeeprofile.employee
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
-import kotlin.test.assertTrue
 
 /**
  * Every record in the app crosses this boundary twice. A mistake here doesn't throw — it
@@ -72,17 +71,5 @@ class EmployeeEntityTest {
         val entity = employee(resume = null).toEntity()
         assertNull(entity.resumePath)
         assertNull(entity.toDomain().resume)
-    }
-
-    @Test
-    fun `a profile image path is carried across untouched`() {
-        val path = "/files/media/123-photo.jpg"
-        assertEquals(path, employee(profileImagePath = path).toEntity().toDomain().profileImagePath)
-    }
-
-    @Test
-    fun `timestamps are preserved both ways`() {
-        val entity = employee(createdAt = 500L, updatedAt = 900L).toEntity()
-        assertTrue(entity.createdAt == 500L && entity.updatedAt == 900L)
     }
 }

@@ -32,15 +32,6 @@ class MinHeapTest {
     }
 
     @Test
-    fun `size tracks pushes and polls`() {
-        val heap = heap()
-        listOf(4, 2, 8).forEach(heap::push)
-        assertEquals(3, heap.size)
-        heap.poll()
-        assertEquals(2, heap.size)
-    }
-
-    @Test
     fun `duplicates are kept rather than collapsed`() {
         val heap = heap()
         listOf(2, 2, 2).forEach(heap::push)

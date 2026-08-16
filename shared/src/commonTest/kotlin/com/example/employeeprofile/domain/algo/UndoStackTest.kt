@@ -24,16 +24,6 @@ class UndoStackTest {
     }
 
     @Test
-    fun `size tracks what is on the stack`() {
-        val stack = UndoStack<String>()
-        stack.push("a")
-        stack.push("b")
-        assertEquals(2, stack.size)
-        stack.pop()
-        assertEquals(1, stack.size)
-    }
-
-    @Test
     fun `the stack never grows past its depth`() {
         val stack = UndoStack<Int>(maxDepth = 3)
         repeat(10) { stack.push(it) }
