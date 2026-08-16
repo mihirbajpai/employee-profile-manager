@@ -4,4 +4,7 @@
     <files-path
         name="media"
         path="media/" />
+    <files-path
+        name="exports"
+        path="exports/" />
 </paths>

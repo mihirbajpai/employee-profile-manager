@@ -61,6 +61,17 @@ class EmployeeListViewModel(private val repository: EmployeeRepository) : ViewMo
     }
 
     /**
+     * Everything the current search and filters match, in sort order and with no page limit.
+     * This is what an export writes out — the page boundary is a drawing concern, and silently
+     * exporting only the rows that happen to be on screen would be a lie.
+     */
+    val matchingAll: StateFlow<List<Employee>> = matching.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(SUBSCRIPTION_TIMEOUT_MS),
+        initialValue = emptyList()
+    )
+
+    /**
      * A page at a time, taken after filtering and sorting rather than before.
      *
      * The brief suggests paging in the DAO. That would hand the view model one page at a time,
@@ -68,7 +79,7 @@ class EmployeeListViewModel(private val repository: EmployeeRepository) : ViewMo
      * screen's requirement that those run across every record. So the query stays whole and
      * the page boundary is applied last, where it only affects how much is drawn.
      */
-    val employees: StateFlow<List<Employee>> = combine(matching, _visibleCount) { list, count ->
+    val employees: StateFlow<List<Employee>> = combine(matchingAll, _visibleCount) { list, count ->
         list.take(count)
     }.stateIn(
         scope = viewModelScope,
@@ -77,7 +88,7 @@ class EmployeeListViewModel(private val repository: EmployeeRepository) : ViewMo
     )
 
     /** Whether anything is left below what's drawn — drives the spinner at the list's foot. */
-    val hasMore: StateFlow<Boolean> = combine(matching, _visibleCount) { list, count ->
+    val hasMore: StateFlow<Boolean> = combine(matchingAll, _visibleCount) { list, count ->
         list.size > count
     }.stateIn(
         scope = viewModelScope,

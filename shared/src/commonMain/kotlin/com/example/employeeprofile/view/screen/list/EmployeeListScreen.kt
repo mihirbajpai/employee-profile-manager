@@ -50,6 +50,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -57,10 +58,12 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.employeeprofile.data.model.Employee
 import com.example.employeeprofile.data.model.ThemePreference
+import com.example.employeeprofile.platform.rememberPdfExporter
 import com.example.employeeprofile.view.component.ConfirmDialog
 import com.example.employeeprofile.view.component.EmptyState
 import com.example.employeeprofile.view.component.SearchField
 import com.example.employeeprofile.view.theme.Spacing
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -97,6 +100,7 @@ fun EmployeeListScreen(
     val filters by vm.filters.collectAsStateWithLifecycle()
     val sort by vm.sort.collectAsStateWithLifecycle()
     val hasMore by vm.hasMore.collectAsStateWithLifecycle()
+    val matchingAll by vm.matchingAll.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
 
     // Asks for the next page once the end is within a screenful, rather than at the very last
@@ -115,6 +119,12 @@ fun EmployeeListScreen(
     var pendingDelete by remember { mutableStateOf<Employee?>(null) }
     val undoPrompt by vm.undoPrompt.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
+    // Exports what the list is currently showing, filters and sort included.
+    val pdfExporter = rememberPdfExporter { message ->
+        scope.launch { snackbarHostState.showSnackbar(message) }
+    }
 
     // Material's own durations are 4s and 10s; the brief asks for 5, so the snackbar is shown
     // indefinitely and this timeout takes it away.
@@ -169,7 +179,8 @@ fun EmployeeListScreen(
                     )
                     OverflowMenu(
                         onViewTopEarners = onViewTopEarners,
-                        onViewSummary = onViewSummary
+                        onViewSummary = onViewSummary,
+                        onExportPdf = { pdfExporter.export(matchingAll) }
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -294,7 +305,11 @@ fun EmployeeListScreen(
 
 /** The screens that don't warrant a permanent slot in the bar. */
 @Composable
-private fun OverflowMenu(onViewTopEarners: () -> Unit, onViewSummary: () -> Unit) {
+private fun OverflowMenu(
+    onViewTopEarners: () -> Unit,
+    onViewSummary: () -> Unit,
+    onExportPdf: () -> Unit
+) {
     var expanded by remember { mutableStateOf(false) }
     Box {
         IconButton(onClick = { expanded = true }) {
@@ -321,6 +336,13 @@ private fun OverflowMenu(onViewTopEarners: () -> Unit, onViewSummary: () -> Unit
                 onClick = {
                     expanded = false
                     onViewSummary()
+                }
+            )
+            DropdownMenuItem(
+                text = { Text("Export as PDF") },
+                onClick = {
+                    expanded = false
+                    onExportPdf()
                 }
             )
         }
