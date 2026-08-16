@@ -12,8 +12,9 @@ kotlin {
         minSdk = libs.versions.androidMinSdk.get().toInt()
     }
 
-    // One framework per iOS architecture; Xcode picks the right one for the run destination.
-    listOf(iosX64(), iosArm64(), iosSimulatorArm64()).forEach { iosTarget ->
+    // Device and Apple-silicon simulator; Xcode picks the right one for the run destination.
+    // Compose Multiplatform no longer publishes iosX64, so Intel simulators aren't supported.
+    listOf(iosArm64(), iosSimulatorArm64()).forEach { iosTarget ->
         iosTarget.binaries.framework {
             baseName = "Shared"
             isStatic = true
