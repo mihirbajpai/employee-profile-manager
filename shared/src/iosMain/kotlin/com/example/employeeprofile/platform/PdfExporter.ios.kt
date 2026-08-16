@@ -61,10 +61,15 @@ private fun writePdf(employees: List<Employee>): String? {
         width = PdfLayout.PAGE_WIDTH.toDouble(),
         height = PdfLayout.PAGE_HEIGHT.toDouble()
     )
+    // UIKit's PDF context is process-global: everything drawn between these two calls lands
+    // in this document, so nothing below is handed a context of its own.
     UIGraphicsBeginPDFContextToFile(path, bounds, null)
     UIGraphicsBeginPDFPage()
 
+    // drawAtPoint takes the text's top-left, where Android's drawText takes its baseline —
+    // which is why this starts at the margin and the Android side starts below it.
     var y = PdfLayout.MARGIN
+    // The UIKit drawing methods are a category on NSString, so a Kotlin String can't call them.
     (pdfTitle(employees.size) as NSString)
         .drawAtPoint(CGPointMake(PdfLayout.MARGIN.toDouble(), y.toDouble()), title)
     y += PdfLayout.TITLE_GAP
@@ -85,6 +90,7 @@ private fun writePdf(employees: List<Employee>): String? {
     }
     UIGraphicsEndPDFContext()
 
+    // Nothing above returns a result, so the file appearing on disk is the only success signal.
     return if (NSFileManager.defaultManager.fileExistsAtPath(path)) path else null
 }
 

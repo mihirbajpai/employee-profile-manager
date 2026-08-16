@@ -48,6 +48,8 @@ private fun Context.writePdf(employees: List<Employee>): File {
 
     var pageNumber = 1
     var page = document.startPage(newPageInfo(pageNumber))
+    // Canvas draws text from its baseline, not its top, so the first line starts a full
+    // text-height below the margin rather than at it.
     var y = PdfLayout.MARGIN + PdfLayout.TITLE_SIZE
 
     page.canvas.drawText(pdfTitle(employees.size), PdfLayout.MARGIN, y, title)
@@ -58,6 +60,7 @@ private fun Context.writePdf(employees: List<Employee>): File {
     y += PdfLayout.ROW_HEIGHT
 
     for (employee in employees) {
+        // Checked before drawing rather than after, so a row is never half off the page.
         if (y > PdfLayout.LAST_BASELINE) {
             document.finishPage(page)
             pageNumber++
@@ -69,6 +72,7 @@ private fun Context.writePdf(employees: List<Employee>): File {
         }
         y += PdfLayout.ROW_HEIGHT
     }
+    // The page in hand when the loop ends still needs closing.
     document.finishPage(page)
 
     // Not stamped with a timestamp: each export replaces the last rather than piling up.

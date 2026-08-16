@@ -27,6 +27,7 @@ fun highlight(text: String, query: String, color: Color): AnnotatedString {
                 return@buildAnnotatedString
             }
             append(text.substring(index, match))
+            // Taken from the original text, not the query, so "sha" doesn't lower-case "Sha".
             withStyle(SpanStyle(color = color, fontWeight = FontWeight.Bold)) {
                 append(text.substring(match, match + needle.length))
             }

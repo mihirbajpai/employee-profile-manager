@@ -31,6 +31,11 @@ private val STATUS_OPTIONS = listOf<Pair<String, Boolean?>>(
     "Inactive" to false
 )
 
+/**
+ * The filter sheet. Nothing is applied on dismissal — each chip narrows the list as it's
+ * tapped, so the sheet is a view onto the filters rather than a form to submit, and closing it
+ * keeps whatever was chosen.
+ */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun FilterSheet(
