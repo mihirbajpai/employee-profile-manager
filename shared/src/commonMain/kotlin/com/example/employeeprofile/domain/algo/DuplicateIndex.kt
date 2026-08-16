@@ -68,6 +68,24 @@ class DuplicateIndex {
         else -> null
     }
 
+    /**
+     * Checks for a duplicate email or normalised phone before persist.
+     *
+     * Time complexity: O(1) average — hash lookup
+     * Space complexity: O(n) where n = number of employees
+     *
+     * The brief's signature, kept for the yes/no question. [findConflict] is what the form
+     * actually calls, because it also says *which* field clashed — a boolean can't, and the
+     * error has to land on the right field rather than in a toast.
+     */
+    fun isDuplicate(
+        email: String,
+        normalizedPhone: String,
+        selfId: Long = Employee.NO_ID
+    ): Boolean =
+        emailOwners.takenByAnother(email.trim().lowercase(), selfId) ||
+            phoneOwners.takenByAnother(normalizedPhone, selfId)
+
     private fun Map<String, Long>.takenByAnother(key: String, selfId: Long): Boolean {
         val owner = this[key] ?: return false
         return owner != selfId
