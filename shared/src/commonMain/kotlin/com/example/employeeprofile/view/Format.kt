@@ -30,6 +30,18 @@ fun formatSalary(salary: Double): String {
     return "₹$grouped,$lastThree"
 }
 
+/** File sizes as KB or MB, whichever reads better — 1536 becomes "1.5 KB". */
+fun formatFileSize(bytes: Long): String {
+    val kilobytes = bytes / 1024.0
+    if (kilobytes < 1024) return "${oneDecimal(kilobytes)} KB"
+    return "${oneDecimal(kilobytes / 1024.0)} MB"
+}
+
+private fun oneDecimal(value: Double): String {
+    val rounded = (value * 10).toLong()
+    return "${rounded / 10}.${rounded % 10}"
+}
+
 /** Rank labels for the top-earners list: 1 becomes "1st", 12 becomes "12th". */
 fun ordinal(rank: Int): String {
     val suffix = when {

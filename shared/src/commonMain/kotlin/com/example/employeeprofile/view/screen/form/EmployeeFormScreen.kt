@@ -43,6 +43,7 @@ import com.example.employeeprofile.view.component.LabeledSwitch
 import com.example.employeeprofile.view.component.LabeledTextField
 import com.example.employeeprofile.view.component.ProfileImageField
 import com.example.employeeprofile.view.component.RadioGroup
+import com.example.employeeprofile.view.component.ResumeField
 import com.example.employeeprofile.view.theme.Spacing
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
@@ -70,9 +71,16 @@ fun EmployeeFormScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val picker = rememberMediaPicker(
         onImagePicked = { vm.onProfileImagePicked(it.path) },
-        onDocumentPicked = {},
-        onError = { message -> scope.launch { snackbarHostState.showSnackbar(message) } }
+        onDocumentPicked = vm::onResumePicked,
+        onError = vm::onPickerError
     )
+
+    val message by vm.message.collectAsStateWithLifecycle()
+    LaunchedEffect(message) {
+        val text = message ?: return@LaunchedEffect
+        snackbarHostState.showSnackbar(text)
+        vm.onMessageShown()
+    }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -187,6 +195,11 @@ fun EmployeeFormScreen(
                 onValueChange = vm::onJoiningDateChange,
                 error = errors[FormField.JOINING_DATE],
                 onDismissed = { vm.onFieldTouched(FormField.JOINING_DATE) }
+            )
+            ResumeField(
+                resume = state.resume,
+                onUpload = picker::pickDocument,
+                onRemove = vm::onResumeRemoved
             )
             LabeledTextField(
                 label = "Salary",

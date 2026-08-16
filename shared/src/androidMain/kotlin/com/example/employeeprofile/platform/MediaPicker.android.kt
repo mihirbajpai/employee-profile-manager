@@ -16,6 +16,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
+import com.example.employeeprofile.data.model.ResumeDocument
 import java.io.File
 
 /** Where copies of picked files live, inside the app's private storage. */
@@ -61,6 +62,19 @@ actual fun rememberMediaPicker(
         )
     }
 
+    val documentLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        // Size is checked from the provider's metadata first, so an oversized file is turned
+        // away without copying it anywhere.
+        if (context.queryMetadata(uri).size > ResumeDocument.MAX_BYTES) {
+            onError(ResumeDocument.TOO_LARGE_MESSAGE)
+            return@rememberLauncherForActivityResult
+        }
+        context.copyToAppStorage(uri, onError)?.let(onDocumentPicked)
+    }
+
     fun startCapture() {
         val target = context.newMediaFile("photo.jpg")
         captureTarget = target
@@ -78,7 +92,7 @@ actual fun rememberMediaPicker(
         if (granted) startCapture() else onError("Camera permission is needed to take a photo")
     }
 
-    return remember(galleryLauncher, cameraLauncher, cameraPermissionLauncher) {
+    return remember(galleryLauncher, cameraLauncher, cameraPermissionLauncher, documentLauncher) {
         object : MediaPicker {
             override fun pickImage(source: ImageSource) {
                 when (source) {
@@ -96,7 +110,8 @@ actual fun rememberMediaPicker(
                 }
             }
 
-            override fun pickDocument() = onError("Document picking isn't wired up yet")
+            override fun pickDocument() =
+                documentLauncher.launch(ResumeDocument.ALLOWED_MIME_TYPES)
         }
     }
 }
@@ -134,10 +149,10 @@ internal fun Context.copyToAppStorage(uri: Uri, onError: (String) -> Unit): Pick
     }
 }
 
-private class UriMetadata(val name: String, val size: Long)
+internal class UriMetadata(val name: String, val size: Long)
 
 /** Display name and size as the content provider reports them, with a usable fallback. */
-private fun Context.queryMetadata(uri: Uri): UriMetadata {
+internal fun Context.queryMetadata(uri: Uri): UriMetadata {
     contentResolver.query(uri, null, null, null, null)?.use { cursor ->
         val nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
         val sizeIndex = cursor.getColumnIndex(OpenableColumns.SIZE)

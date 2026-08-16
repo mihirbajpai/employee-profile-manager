@@ -6,7 +6,9 @@ import com.example.employeeprofile.data.model.Department
 import com.example.employeeprofile.data.model.Employee
 import com.example.employeeprofile.data.model.EmploymentType
 import com.example.employeeprofile.data.model.Gender
+import com.example.employeeprofile.data.model.ResumeDocument
 import com.example.employeeprofile.data.model.Skill
+import com.example.employeeprofile.platform.PickedFile
 import com.example.employeeprofile.data.repository.EmployeeRepository
 import com.example.employeeprofile.domain.algo.DuplicateField
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -32,6 +34,10 @@ class EmployeeFormViewModel(private val repository: EmployeeRepository) : ViewMo
      * from the field rules so editing the offending field clears it immediately.
      */
     private val _duplicateErrors = MutableStateFlow(emptyMap<FormField, String>())
+
+    /** One-off text for the snackbar — a rejected file, or a picker that couldn't open. */
+    private val _message = MutableStateFlow<String?>(null)
+    val message: StateFlow<String?> = _message.asStateFlow()
 
     /**
      * Fields the user has finished with — left, in the case of a text field, or answered, for
@@ -96,6 +102,38 @@ class EmployeeFormViewModel(private val repository: EmployeeRepository) : ViewMo
 
     /** The picker has already copied the file into app storage; only the path is stored. */
     fun onProfileImagePicked(path: String) = updateState { copy(profileImagePath = path) }
+
+    /**
+     * Attaches a picked resume. The size is checked here as well as in the picker: the picker
+     * avoids copying a large file, this makes the rule hold wherever a file comes from.
+     */
+    fun onResumePicked(file: PickedFile) {
+        if (file.sizeBytes > ResumeDocument.MAX_BYTES) {
+            _message.value = ResumeDocument.TOO_LARGE_MESSAGE
+            return
+        }
+        updateState {
+            copy(
+                resume = ResumeDocument(
+                    path = file.path,
+                    name = file.name,
+                    sizeBytes = file.sizeBytes,
+                    mimeType = file.mimeType
+                )
+            )
+        }
+    }
+
+    fun onResumeRemoved() = updateState { copy(resume = null) }
+
+    /** Reports a picker problem to the screen; cleared once the snackbar has shown it. */
+    fun onPickerError(message: String) {
+        _message.value = message
+    }
+
+    fun onMessageShown() {
+        _message.value = null
+    }
 
     fun onJoiningDateChange(value: Long) {
         updateState { copy(joiningDate = value) }

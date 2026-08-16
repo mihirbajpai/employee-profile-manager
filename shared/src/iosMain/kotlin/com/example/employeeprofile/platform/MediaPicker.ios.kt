@@ -2,9 +2,12 @@ package com.example.employeeprofile.platform
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import com.example.employeeprofile.data.model.ResumeDocument
 import kotlinx.cinterop.ExperimentalForeignApi
 import platform.Foundation.NSData
 import platform.Foundation.NSError
+import platform.Foundation.NSURL
+import platform.Foundation.dataWithContentsOfURL
 import platform.PhotosUI.PHPickerConfiguration
 import platform.PhotosUI.PHPickerFilter
 import platform.PhotosUI.PHPickerResult
@@ -16,7 +19,10 @@ import platform.UIKit.UIImagePickerController
 import platform.UIKit.UIImagePickerControllerDelegateProtocol
 import platform.UIKit.UIImagePickerControllerOriginalImage
 import platform.UIKit.UIImagePickerControllerSourceType
+import platform.UIKit.UIDocumentPickerDelegateProtocol
+import platform.UIKit.UIDocumentPickerViewController
 import platform.UIKit.UINavigationControllerDelegateProtocol
+import platform.UniformTypeIdentifiers.UTType
 import platform.darwin.NSObject
 import platform.darwin.dispatch_async
 import platform.darwin.dispatch_get_main_queue
@@ -48,6 +54,7 @@ private class IosMediaPicker(
 
     private var photoDelegate: PhotoPickerDelegate? = null
     private var cameraDelegate: CameraDelegate? = null
+    private var documentDelegate: DocumentPickerDelegate? = null
 
     override fun pickImage(source: ImageSource) {
         when (source) {
@@ -56,7 +63,21 @@ private class IosMediaPicker(
         }
     }
 
-    override fun pickDocument() = onError("Document picking isn't wired up yet")
+    override fun pickDocument() {
+        val types = RESUME_TYPE_IDENTIFIERS.mapNotNull(UTType::typeWithIdentifier)
+        if (types.isEmpty()) {
+            onError("Couldn't open the file picker")
+            return
+        }
+        val delegate = DocumentPickerDelegate(onDocumentPicked, onError)
+        documentDelegate = delegate
+        val controller = UIDocumentPickerViewController(forOpeningContentTypes = types).apply {
+            setDelegate(delegate)
+            setAllowsMultipleSelection(false)
+        }
+        rootViewController()?.presentViewController(controller, animated = true, completion = null)
+            ?: onError("Couldn't open the file picker")
+    }
 
     /**
      * The simulator has no camera, so this reports that rather than presenting a controller
@@ -157,4 +178,51 @@ private class CameraDelegate(
     override fun imagePickerControllerDidCancel(picker: UIImagePickerController) {
         picker.dismissViewControllerAnimated(true, null)
     }
+}
+
+/** PDF, DOC and DOCX, as uniform type identifiers rather than MIME types. */
+private val RESUME_TYPE_IDENTIFIERS = listOf(
+    "com.adobe.pdf",
+    "com.microsoft.word.doc",
+    "org.openxmlformats.wordprocessingml.document"
+)
+
+@OptIn(ExperimentalForeignApi::class)
+private class DocumentPickerDelegate(
+    private val onPicked: (PickedFile) -> Unit,
+    private val onError: (String) -> Unit
+) : NSObject(), UIDocumentPickerDelegateProtocol {
+
+    override fun documentPicker(
+        controller: UIDocumentPickerViewController,
+        didPickDocumentsAtURLs: List<*>
+    ) {
+        val url = didPickDocumentsAtURLs.firstOrNull() as? NSURL ?: return
+
+        // A picked file arrives security-scoped: readable only between these two calls.
+        val scoped = url.startAccessingSecurityScopedResource()
+        val data = NSData.dataWithContentsOfURL(url)
+        if (scoped) url.stopAccessingSecurityScopedResource()
+
+        if (data == null) {
+            onError("Couldn't read that file")
+            return
+        }
+        if (data.length.toLong() > ResumeDocument.MAX_BYTES) {
+            onError(ResumeDocument.TOO_LARGE_MESSAGE)
+            return
+        }
+        val name = url.lastPathComponent ?: "resume"
+        val saved = saveToAppStorage(data, name, mimeType = mimeTypeFor(name))
+        if (saved == null) onError("Couldn't save that file") else onPicked(saved)
+    }
+}
+
+/** Enough of a mapping for the three types the picker offers. */
+private fun mimeTypeFor(name: String): String = when {
+    name.endsWith(".pdf", ignoreCase = true) -> "application/pdf"
+    name.endsWith(".docx", ignoreCase = true) ->
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    name.endsWith(".doc", ignoreCase = true) -> "application/msword"
+    else -> ""
 }
