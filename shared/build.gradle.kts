@@ -12,6 +12,9 @@ kotlin {
         namespace = "com.example.employeeprofile.shared"
         compileSdk = libs.versions.androidCompileSdk.get().toInt()
         minSdk = libs.versions.androidMinSdk.get().toInt()
+
+        // Runs commonTest on the JVM, so the shared logic is testable without a device.
+        withHostTestBuilder {}.configure {}
     }
 
     // Device and Apple-silicon simulator; Xcode picks the right one for the run destination.
