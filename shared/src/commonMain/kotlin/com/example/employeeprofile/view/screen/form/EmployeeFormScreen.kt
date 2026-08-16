@@ -3,31 +3,156 @@ package com.example.employeeprofile.view.screen.form
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.employeeprofile.data.model.Department
 import com.example.employeeprofile.data.model.Employee
+import com.example.employeeprofile.data.model.EmploymentType
+import com.example.employeeprofile.data.model.Gender
+import com.example.employeeprofile.data.model.Skill
+import com.example.employeeprofile.view.component.CheckboxChipGroup
+import com.example.employeeprofile.view.component.DateField
+import com.example.employeeprofile.view.component.LabeledDropdown
+import com.example.employeeprofile.view.component.LabeledSwitch
+import com.example.employeeprofile.view.component.LabeledTextField
+import com.example.employeeprofile.view.component.RadioGroup
 import com.example.employeeprofile.view.theme.Spacing
+import org.koin.compose.viewmodel.koinViewModel
+
+/** The address field shows four lines at once, per the spec. */
+private const val ADDRESS_LINES = 4
 
 /** One form for both create and edit — [employeeId] is [Employee.NO_ID] when creating. */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EmployeeFormScreen(employeeId: Long, onDone: () -> Unit) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(Spacing.large),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(Spacing.small, Alignment.CenterVertically)
-    ) {
-        Text(
-            text = if (employeeId == Employee.NO_ID) "New employee" else "Edit employee",
-            style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.onSurface
-        )
-        TextButton(onClick = onDone) { Text("Back") }
+fun EmployeeFormScreen(
+    employeeId: Long,
+    onDone: () -> Unit,
+    vm: EmployeeFormViewModel = koinViewModel()
+) {
+    val state by vm.state.collectAsStateWithLifecycle()
+    val isNew = employeeId == Employee.NO_ID
+
+    Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
+        topBar = {
+            TopAppBar(
+                title = { Text(if (isNew) "New employee" else "Edit employee") },
+                navigationIcon = {
+                    IconButton(onClick = onDone) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface
+                )
+            )
+        }
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(horizontal = Spacing.medium)
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(Spacing.small)
+        ) {
+            LabeledTextField(
+                label = "Full name",
+                value = state.fullName,
+                onValueChange = vm::onFullNameChange
+            )
+            LabeledTextField(
+                label = "Email",
+                value = state.email,
+                onValueChange = vm::onEmailChange,
+                keyboardType = KeyboardType.Email
+            )
+            LabeledTextField(
+                label = "Phone number",
+                value = state.phone,
+                onValueChange = vm::onPhoneChange,
+                keyboardType = KeyboardType.Phone
+            )
+            LabeledTextField(
+                label = "Address",
+                value = state.address,
+                onValueChange = vm::onAddressChange,
+                singleLine = false,
+                minLines = ADDRESS_LINES
+            )
+            RadioGroup(
+                label = "Gender",
+                options = Gender.entries,
+                selected = state.gender,
+                optionLabel = { it.label },
+                onSelect = vm::onGenderChange
+            )
+            LabeledDropdown(
+                label = "Department",
+                options = Department.entries,
+                selected = state.department,
+                optionLabel = { it.label },
+                onSelect = vm::onDepartmentChange
+            )
+            CheckboxChipGroup(
+                label = "Skills",
+                options = Skill.entries,
+                selected = state.skills,
+                optionLabel = { it.label },
+                onToggle = vm::onSkillToggle
+            )
+            LabeledDropdown(
+                label = "Employment type",
+                options = EmploymentType.entries,
+                selected = state.employmentType,
+                optionLabel = { it.label },
+                onSelect = vm::onEmploymentTypeChange
+            )
+            LabeledSwitch(
+                label = "Active",
+                checked = state.isActive,
+                onCheckedChange = vm::onActiveChange
+            )
+            DateField(
+                label = "Joining date",
+                value = state.joiningDate,
+                onValueChange = vm::onJoiningDateChange
+            )
+            LabeledTextField(
+                label = "Salary",
+                value = state.salary,
+                onValueChange = vm::onSalaryChange,
+                keyboardType = KeyboardType.Number,
+                prefix = "₹"
+            )
+            Button(
+                onClick = onDone,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = Spacing.medium)
+            ) {
+                Text(if (isNew) "Create employee" else "Save changes")
+            }
+        }
     }
 }

@@ -3,6 +3,7 @@ package com.example.employeeprofile.di
 import com.example.employeeprofile.data.local.EmployeeDatabase
 import com.example.employeeprofile.data.local.createEmployeeDatabase
 import com.example.employeeprofile.data.repository.EmployeeRepository
+import com.example.employeeprofile.view.screen.form.EmployeeFormViewModel
 import com.example.employeeprofile.view.screen.list.EmployeeListViewModel
 import org.koin.core.KoinApplication
 import org.koin.core.context.startKoin
@@ -19,6 +20,7 @@ val sharedModule = module {
     single { EmployeeRepository(get()) }
 
     viewModel { EmployeeListViewModel(get()) }
+    viewModel { EmployeeFormViewModel() }
 }
 
 /**
