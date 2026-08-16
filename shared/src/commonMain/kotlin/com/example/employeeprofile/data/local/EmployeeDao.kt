@@ -21,6 +21,10 @@ interface EmployeeDao {
     @Query("SELECT * FROM employees WHERE id = :id")
     suspend fun findById(id: Long): EmployeeEntity?
 
+    /** One-shot read, used to build the duplicate index at start-up. */
+    @Query("SELECT * FROM employees")
+    suspend fun getAll(): List<EmployeeEntity>
+
     @Insert
     suspend fun insert(employee: EmployeeEntity): Long
 

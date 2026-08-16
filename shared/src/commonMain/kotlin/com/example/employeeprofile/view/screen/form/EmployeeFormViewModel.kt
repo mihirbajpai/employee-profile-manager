@@ -8,6 +8,7 @@ import com.example.employeeprofile.data.model.EmploymentType
 import com.example.employeeprofile.data.model.Gender
 import com.example.employeeprofile.data.model.Skill
 import com.example.employeeprofile.data.repository.EmployeeRepository
+import com.example.employeeprofile.domain.algo.DuplicateField
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -27,28 +28,46 @@ class EmployeeFormViewModel(private val repository: EmployeeRepository) : ViewMo
     private var editing: Employee? = null
 
     /**
+     * Errors that only a save attempt can find — a duplicate email, phone or name. Kept apart
+     * from the field rules so editing the offending field clears it immediately.
+     */
+    private val _duplicateErrors = MutableStateFlow(emptyMap<FormField, String>())
+
+    /**
      * Fields the user has finished with — left, in the case of a text field, or answered, for
      * the ones you can't focus. A field nobody has reached yet isn't shown as wrong.
      */
     private val _touched = MutableStateFlow(emptySet<FormField>())
 
     /** Only the errors on touched fields, so the form doesn't turn red before it's been filled. */
-    val errors: StateFlow<Map<FormField, String>> = combine(_state, _touched) { state, touched ->
-        EmployeeFormValidator.validate(state).filterKeys { it in touched }
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(SUBSCRIPTION_TIMEOUT_MS), emptyMap())
+    val errors: StateFlow<Map<FormField, String>> =
+        combine(_state, _touched, _duplicateErrors) { state, touched, duplicates ->
+            EmployeeFormValidator.validate(state).filterKeys { it in touched } + duplicates
+        }.stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(SUBSCRIPTION_TIMEOUT_MS),
+            emptyMap()
+        )
 
     /** Gates the Submit button, and looks at every field regardless of what's been touched. */
     val isValid: StateFlow<Boolean> = _state
         .map { EmployeeFormValidator.validate(it).isEmpty() }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(SUBSCRIPTION_TIMEOUT_MS), false)
 
-    fun onFullNameChange(value: String) = updateState { copy(fullName = value) }
+    fun onFullNameChange(value: String) {
+        clearDuplicateError(FormField.FULL_NAME)
+        updateState { copy(fullName = value) }
+    }
 
-    fun onEmailChange(value: String) = updateState { copy(email = value) }
+    fun onEmailChange(value: String) {
+        clearDuplicateError(FormField.EMAIL)
+        updateState { copy(email = value) }
+    }
 
     /** Anything that isn't a digit or a separator someone might type is dropped on the way in. */
-    fun onPhoneChange(value: String) = updateState {
-        copy(phone = value.filter { it.isDigit() || it in PHONE_SEPARATORS })
+    fun onPhoneChange(value: String) {
+        clearDuplicateError(FormField.PHONE)
+        updateState { copy(phone = value.filter { it.isDigit() || it in PHONE_SEPARATORS }) }
     }
 
     fun onAddressChange(value: String) = updateState { copy(address = value) }
@@ -107,13 +126,35 @@ class EmployeeFormViewModel(private val repository: EmployeeRepository) : ViewMo
         if (EmployeeFormValidator.validate(_state.value).isNotEmpty()) return
         viewModelScope.launch {
             val existing = editing
-            if (existing == null) {
-                repository.insert(_state.value.toEmployee())
-            } else {
-                repository.update(_state.value.toEmployee(existing))
+            val employee = _state.value.toEmployee(existing)
+            // O(1) membership check against the in-memory index, before the DAO is called.
+            val conflict = repository.findConflict(employee)
+            if (conflict != null) {
+                _duplicateErrors.value = mapOf(conflict.toFormField() to conflict.message())
+                _touched.value = _touched.value + conflict.toFormField()
+                return@launch
             }
+            if (existing == null) repository.insert(employee) else repository.update(employee)
             onSaved()
         }
+    }
+
+    private fun clearDuplicateError(field: FormField) {
+        if (field in _duplicateErrors.value) {
+            _duplicateErrors.value = _duplicateErrors.value - field
+        }
+    }
+
+    private fun DuplicateField.toFormField(): FormField = when (this) {
+        DuplicateField.EMAIL -> FormField.EMAIL
+        DuplicateField.PHONE -> FormField.PHONE
+        DuplicateField.NAME -> FormField.FULL_NAME
+    }
+
+    private fun DuplicateField.message(): String = when (this) {
+        DuplicateField.EMAIL -> "Another employee already uses this email"
+        DuplicateField.PHONE -> "Another employee already uses this phone number"
+        DuplicateField.NAME -> "An employee with this name already exists"
     }
 
     /** Called when a field loses focus, or when one that can't hold focus is answered. */

@@ -3,6 +3,7 @@ package com.example.employeeprofile.di
 import com.example.employeeprofile.data.local.EmployeeDatabase
 import com.example.employeeprofile.data.local.createEmployeeDatabase
 import com.example.employeeprofile.data.repository.EmployeeRepository
+import com.example.employeeprofile.domain.algo.DuplicateIndex
 import com.example.employeeprofile.view.screen.form.EmployeeFormViewModel
 import com.example.employeeprofile.view.screen.list.EmployeeListViewModel
 import org.koin.core.KoinApplication
@@ -17,7 +18,8 @@ val sharedModule = module {
     // The builder comes from [platformModule]; only the file location differs per platform.
     single { createEmployeeDatabase(get()) }
     single { get<EmployeeDatabase>().employeeDao() }
-    single { EmployeeRepository(get()) }
+    single { DuplicateIndex() }
+    single { EmployeeRepository(get(), get()) }
 
     viewModel { EmployeeListViewModel(get()) }
     viewModel { EmployeeFormViewModel(get()) }
