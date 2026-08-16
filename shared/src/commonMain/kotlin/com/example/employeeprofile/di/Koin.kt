@@ -9,6 +9,7 @@ import com.example.employeeprofile.view.SettingsViewModel
 import com.example.employeeprofile.view.screen.detail.EmployeeDetailViewModel
 import com.example.employeeprofile.view.screen.form.EmployeeFormViewModel
 import com.example.employeeprofile.view.screen.list.EmployeeListViewModel
+import com.example.employeeprofile.view.screen.summary.DepartmentSummaryViewModel
 import com.example.employeeprofile.view.screen.topearners.TopEarnersViewModel
 import org.koin.core.KoinApplication
 import org.koin.core.context.startKoin
@@ -31,6 +32,7 @@ val sharedModule = module {
     viewModel { EmployeeFormViewModel(get()) }
     viewModel { TopEarnersViewModel(get()) }
     viewModel { EmployeeDetailViewModel(get()) }
+    viewModel { DepartmentSummaryViewModel(get()) }
 }
 
 /**

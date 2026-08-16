@@ -24,6 +24,7 @@ import androidx.compose.material.icons.filled.BrightnessAuto
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.LightMode
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.CircularProgressIndicator
@@ -88,6 +89,7 @@ fun EmployeeListScreen(
     onEditEmployee: (employeeId: Long) -> Unit,
     onViewEmployee: (employeeId: Long) -> Unit,
     onViewTopEarners: () -> Unit,
+    onViewSummary: () -> Unit,
     vm: EmployeeListViewModel = koinViewModel()
 ) {
     val employees by vm.employees.collectAsStateWithLifecycle()
@@ -160,11 +162,14 @@ fun EmployeeListScreen(
             TopAppBar(
                 title = { Text("Employees") },
                 actions = {
-                    TextButton(onClick = onViewTopEarners) { Text("Top earners") }
                     ThemeAction(preference = themePreference, onClick = onCycleTheme)
                     FilterAction(
                         selectionCount = filters.selectionCount,
                         onClick = { showFilters = true }
+                    )
+                    OverflowMenu(
+                        onViewTopEarners = onViewTopEarners,
+                        onViewSummary = onViewSummary
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -283,6 +288,41 @@ fun EmployeeListScreen(
                     }
                 }
             }
+        }
+    }
+}
+
+/** The screens that don't warrant a permanent slot in the bar. */
+@Composable
+private fun OverflowMenu(onViewTopEarners: () -> Unit, onViewSummary: () -> Unit) {
+    var expanded by remember { mutableStateOf(false) }
+    Box {
+        IconButton(onClick = { expanded = true }) {
+            Icon(
+                imageVector = Icons.Default.MoreVert,
+                contentDescription = "More",
+                tint = MaterialTheme.colorScheme.onSurface
+            )
+        }
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+        ) {
+            DropdownMenuItem(
+                text = { Text("Top earners") },
+                onClick = {
+                    expanded = false
+                    onViewTopEarners()
+                }
+            )
+            DropdownMenuItem(
+                text = { Text("Department summary") },
+                onClick = {
+                    expanded = false
+                    onViewSummary()
+                }
+            )
         }
     }
 }

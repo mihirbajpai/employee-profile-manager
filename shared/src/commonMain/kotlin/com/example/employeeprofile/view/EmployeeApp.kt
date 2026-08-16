@@ -22,6 +22,7 @@ import com.example.employeeprofile.data.model.Employee
 import com.example.employeeprofile.view.screen.detail.EmployeeDetailScreen
 import com.example.employeeprofile.view.screen.form.EmployeeFormScreen
 import com.example.employeeprofile.view.screen.list.EmployeeListScreen
+import com.example.employeeprofile.view.screen.summary.DepartmentSummaryScreen
 import com.example.employeeprofile.view.screen.topearners.TopEarnersScreen
 import com.example.employeeprofile.view.theme.EmployeeProfileTheme
 import com.example.employeeprofile.view.theme.resolveDarkTheme
@@ -59,7 +60,8 @@ fun EmployeeApp(settingsViewModel: SettingsViewModel = koinViewModel()) {
                     },
                     onEditEmployee = { navController.navigate(Screen.FORM.withArgs(it)) },
                     onViewEmployee = { navController.navigate(Screen.DETAIL.withArgs(it)) },
-                    onViewTopEarners = { navController.navigate(Screen.TOP_EARNERS.route) }
+                    onViewTopEarners = { navController.navigate(Screen.TOP_EARNERS.route) },
+                    onViewSummary = { navController.navigate(Screen.SUMMARY.route) }
                 )
             }
 
@@ -83,6 +85,10 @@ fun EmployeeApp(settingsViewModel: SettingsViewModel = koinViewModel()) {
             composable(Screen.TOP_EARNERS.route) {
                 TopEarnersScreen(onBack = navController::navigateUp)
             }
+
+            composable(Screen.SUMMARY.route) {
+                DepartmentSummaryScreen(onBack = navController::navigateUp)
+            }
         }
         }
     }
@@ -93,7 +99,8 @@ enum class Screen(val route: String) {
     LIST("list"),
     FORM("form"),
     DETAIL("detail"),
-    TOP_EARNERS("top_earners");
+    TOP_EARNERS("top_earners"),
+    SUMMARY("summary");
 
     fun withArgs(vararg args: Any): String {
         return "$route/${args.joinToString("/")}"
