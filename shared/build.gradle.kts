@@ -56,6 +56,8 @@ kotlin {
             api(libs.koin.android)
             // The picker registers an activity result launcher during composition.
             implementation(libs.androidx.activity.compose)
+            // FileProvider, for handing the camera app a URI into our own storage.
+            implementation(libs.androidx.core.ktx)
         }
 
         commonTest.dependencies {
