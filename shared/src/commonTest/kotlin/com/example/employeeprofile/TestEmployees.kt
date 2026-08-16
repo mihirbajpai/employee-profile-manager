@@ -4,6 +4,7 @@ import com.example.employeeprofile.data.model.Department
 import com.example.employeeprofile.data.model.Employee
 import com.example.employeeprofile.data.model.EmploymentType
 import com.example.employeeprofile.data.model.Gender
+import com.example.employeeprofile.data.model.ResumeDocument
 import com.example.employeeprofile.data.model.Skill
 import com.example.employeeprofile.domain.algo.normalizePhone
 
@@ -19,19 +20,31 @@ fun employee(
     salary: Double = 1_000_000.0,
     department: Department = Department.ENGINEERING,
     isActive: Boolean = true,
-    joiningDate: Long = 1_700_000_000_000L
+    joiningDate: Long = 1_700_000_000_000L,
+    gender: Gender = Gender.FEMALE,
+    employmentType: EmploymentType = EmploymentType.FULL_TIME,
+    skills: List<Skill> = listOf(Skill.KOTLIN),
+    address: String = "12 MG Road, Bengaluru",
+    profileImagePath: String? = null,
+    resume: ResumeDocument? = null,
+    createdAt: Long = 0L,
+    updatedAt: Long = 0L
 ): Employee = Employee(
     id = id,
     fullName = fullName,
     email = email,
     phone = phone,
     normalizedPhone = normalizePhone(phone),
-    address = "12 MG Road, Bengaluru",
-    gender = Gender.FEMALE,
+    address = address,
+    gender = gender,
     department = department,
-    skills = listOf(Skill.KOTLIN),
-    employmentType = EmploymentType.FULL_TIME,
+    skills = skills,
+    employmentType = employmentType,
     isActive = isActive,
     joiningDate = joiningDate,
-    salary = salary
+    salary = salary,
+    profileImagePath = profileImagePath,
+    resume = resume,
+    createdAt = createdAt,
+    updatedAt = updatedAt
 )
