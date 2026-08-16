@@ -5,9 +5,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BrightnessAuto
 import androidx.compose.material.icons.filled.DarkMode
@@ -15,6 +17,7 @@ import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -33,10 +36,12 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -51,6 +56,11 @@ import org.koin.compose.viewmodel.koinViewModel
 
 /** Leaves room under the last card so the floating button never covers it. */
 private val LIST_BOTTOM_PADDING = 96.dp
+
+/** How close to the end the list gets before the next page is asked for. */
+private const val LOAD_MORE_THRESHOLD = 5
+
+private const val LOADING_ITEM_KEY = "loading"
 
 /** How long the undo offer stays up, per the brief. */
 private const val UNDO_TIMEOUT_MS = 5_000L
@@ -70,6 +80,20 @@ fun EmployeeListScreen(
     val searchQuery by vm.searchQuery.collectAsStateWithLifecycle()
     val filters by vm.filters.collectAsStateWithLifecycle()
     val sort by vm.sort.collectAsStateWithLifecycle()
+    val hasMore by vm.hasMore.collectAsStateWithLifecycle()
+    val listState = rememberLazyListState()
+
+    // Asks for the next page once the end is within a screenful, rather than at the very last
+    // row, so the spinner is rarely on screen long enough to be read.
+    val shouldLoadMore by remember {
+        derivedStateOf {
+            val lastVisible = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+            lastVisible >= listState.layoutInfo.totalItemsCount - LOAD_MORE_THRESHOLD
+        }
+    }
+    LaunchedEffect(shouldLoadMore, hasMore) {
+        if (shouldLoadMore && hasMore) vm.onLoadMore()
+    }
     var showFilters by remember { mutableStateOf(false) }
     var contextMenuFor by remember { mutableStateOf<Employee?>(null) }
     var pendingDelete by remember { mutableStateOf<Employee?>(null) }
@@ -169,6 +193,7 @@ fun EmployeeListScreen(
                 return@Column
             }
             LazyColumn(
+                state = listState,
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(
                     start = Spacing.medium,
@@ -214,6 +239,18 @@ fun EmployeeListScreen(
                                     pendingDelete = employee
                                 }
                             )
+                        }
+                    }
+                }
+                if (hasMore) {
+                    item(key = LOADING_ITEM_KEY) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(Spacing.medium),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(strokeWidth = 2.dp)
                         }
                     }
                 }

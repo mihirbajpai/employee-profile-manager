@@ -8,6 +8,7 @@ import com.example.employeeprofile.data.model.EmploymentType
 import com.example.employeeprofile.data.repository.EmployeeRepository
 import com.example.employeeprofile.domain.algo.UndoStack
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -42,11 +43,14 @@ class EmployeeListViewModel(private val repository: EmployeeRepository) : ViewMo
     private val _sort = MutableStateFlow(EmployeeSort.NAME_ASC)
     val sort: StateFlow<EmployeeSort> = _sort.asStateFlow()
 
+    /** How many rows are on screen; grows a page at a time as the list is scrolled. */
+    private val _visibleCount = MutableStateFlow(PAGE_SIZE)
+
     /**
      * Search, filters and sort are folded together here, so the screen never re-derives
      * anything and any one of them changing re-emits the finished list.
      */
-    val employees: StateFlow<List<Employee>> = combine(
+    private val matching: Flow<List<Employee>> = combine(
         repository.observeAll(),
         // Debouncing an empty query would delay the first frame for no reason.
         _searchQuery.debounce { if (it.isEmpty()) 0.milliseconds else SEARCH_DEBOUNCE },
@@ -55,26 +59,54 @@ class EmployeeListViewModel(private val repository: EmployeeRepository) : ViewMo
     ) { all, query, filters, sort ->
         all.filter { it.matches(query) && filters.matches(it) }.sortedWith(sort.comparator)
     }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(SUBSCRIPTION_TIMEOUT_MS),
-            initialValue = emptyList()
-        )
+
+    /**
+     * A page at a time, taken after filtering and sorting rather than before.
+     *
+     * The brief suggests paging in the DAO. That would hand the view model one page at a time,
+     * and searching or sorting would then only see that page — which contradicts the list
+     * screen's requirement that those run across every record. So the query stays whole and
+     * the page boundary is applied last, where it only affects how much is drawn.
+     */
+    val employees: StateFlow<List<Employee>> = combine(matching, _visibleCount) { list, count ->
+        list.take(count)
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(SUBSCRIPTION_TIMEOUT_MS),
+        initialValue = emptyList()
+    )
+
+    /** Whether anything is left below what's drawn — drives the spinner at the list's foot. */
+    val hasMore: StateFlow<Boolean> = combine(matching, _visibleCount) { list, count ->
+        list.size > count
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(SUBSCRIPTION_TIMEOUT_MS),
+        initialValue = false
+    )
+
+    /** Called when the list nears its end. */
+    fun onLoadMore() {
+        _visibleCount.value += PAGE_SIZE
+    }
 
     fun onSearchQueryChange(query: String) {
         _searchQuery.value = query
+        resetPaging()
     }
 
     fun onToggleDepartment(department: Department) {
         _filters.value = _filters.value.let {
             it.copy(departments = it.departments.toggle(department))
         }
+        resetPaging()
     }
 
     fun onToggleEmploymentType(type: EmploymentType) {
         _filters.value = _filters.value.let {
             it.copy(employmentTypes = it.employmentTypes.toggle(type))
         }
+        resetPaging()
     }
 
     /** null clears the status restriction; tapping the selected option clears it too. */
@@ -82,6 +114,7 @@ class EmployeeListViewModel(private val repository: EmployeeRepository) : ViewMo
         _filters.value = _filters.value.copy(
             isActive = if (_filters.value.isActive == isActive) null else isActive
         )
+        resetPaging()
     }
 
     fun onDelete(employee: Employee) {
@@ -107,10 +140,17 @@ class EmployeeListViewModel(private val repository: EmployeeRepository) : ViewMo
 
     fun onSortChange(sort: EmployeeSort) {
         _sort.value = sort
+        resetPaging()
     }
 
     fun onClearFilters() {
         _filters.value = EmployeeFilters()
+        resetPaging()
+    }
+
+    /** A changed query, filter or order means the old page boundary means nothing. */
+    private fun resetPaging() {
+        _visibleCount.value = PAGE_SIZE
     }
 
     private fun <T> Set<T>.toggle(value: T): Set<T> =
@@ -126,6 +166,9 @@ class EmployeeListViewModel(private val repository: EmployeeRepository) : ViewMo
     }
 
     private companion object {
+        /** Rows per page, per the brief. */
+        const val PAGE_SIZE = 20
+
         /** Long enough to skip the letters someone types on the way to a word. */
         val SEARCH_DEBOUNCE = 300.milliseconds
 
