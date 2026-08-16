@@ -1,6 +1,7 @@
 package com.example.employeeprofile.view.screen.list
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -20,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.employeeprofile.view.component.EmptyState
+import com.example.employeeprofile.view.component.SearchField
 import com.example.employeeprofile.view.theme.Spacing
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -36,6 +38,7 @@ fun EmployeeListScreen(
     vm: EmployeeListViewModel = koinViewModel()
 ) {
     val employees by vm.employees.collectAsStateWithLifecycle()
+    val searchQuery by vm.searchQuery.collectAsStateWithLifecycle()
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -61,31 +64,40 @@ fun EmployeeListScreen(
             }
         }
     ) { padding ->
-        if (employees.isEmpty()) {
-            EmptyState(
-                title = "No employees yet",
-                message = "Add the first one and it'll show up here.",
-                modifier = Modifier.padding(padding)
+        Column(modifier = Modifier.padding(padding)) {
+            SearchField(
+                query = searchQuery,
+                onQueryChange = vm::onSearchQueryChange,
+                placeholder = "Search name, email or department",
+                modifier = Modifier.padding(horizontal = Spacing.medium)
             )
-            return@Scaffold
-        }
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding),
-            contentPadding = PaddingValues(
-                start = Spacing.medium,
-                end = Spacing.medium,
-                top = Spacing.small,
-                bottom = LIST_BOTTOM_PADDING
-            ),
-            verticalArrangement = Arrangement.spacedBy(Spacing.small)
-        ) {
-            items(items = employees, key = { it.id }) { employee ->
-                EmployeeCard(
-                    employee = employee,
-                    onClick = { onViewEmployee(employee.id) }
+            if (employees.isEmpty()) {
+                EmptyState(
+                    title = if (searchQuery.isBlank()) "No employees yet" else "No matches",
+                    message = if (searchQuery.isBlank()) {
+                        "Add the first one and it'll show up here."
+                    } else {
+                        "Nothing matches \"$searchQuery\". Try a different search."
+                    }
                 )
+                return@Column
+            }
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(
+                    start = Spacing.medium,
+                    end = Spacing.medium,
+                    top = Spacing.small,
+                    bottom = LIST_BOTTOM_PADDING
+                ),
+                verticalArrangement = Arrangement.spacedBy(Spacing.small)
+            ) {
+                items(items = employees, key = { it.id }) { employee ->
+                    EmployeeCard(
+                        employee = employee,
+                        onClick = { onViewEmployee(employee.id) }
+                    )
+                }
             }
         }
     }
